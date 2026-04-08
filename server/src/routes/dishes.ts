@@ -98,6 +98,9 @@ async function buildDishPayload(body: unknown) {
   if (finalName.length < 2) {
     throw new ValidationError("Название должно быть не короче 2 символов после удаления макроса из названия.");
   }
+  if (parsed.proteinPerPortion + parsed.fatPerPortion + parsed.carbsPerPortion > parsed.portionSizeG + 1e-6) {
+    throw new ValidationError("Сумма Б+Ж+У на порцию не может превышать граммы порции.");
+  }
 
   const merged = new Map<string, number>();
   for (const ing of parsed.ingredients) {

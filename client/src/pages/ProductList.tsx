@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchProducts } from "../api";
 import type { Product, ProductCategory, CookingNeed } from "../types";
+import { Select } from "../components/Select";
 
 const PRODUCT_CATEGORIES: { value: ProductCategory; label: string }[] = [
   { value: "FROZEN", label: "Замороженный" },
@@ -79,25 +80,25 @@ export function ProductList() {
           </div>
           <div>
             <label>Категория</label>
-            <select value={category} onChange={(e) => setCategory(e.target.value)}>
+            <Select value={category} onChange={(e) => setCategory(e.target.value)}>
               <option value="">Все</option>
               {PRODUCT_CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label>Готовка</label>
-            <select value={cookingNeed} onChange={(e) => setCookingNeed(e.target.value)}>
+            <Select value={cookingNeed} onChange={(e) => setCookingNeed(e.target.value)}>
               <option value="">Все</option>
               {COOKING.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label>Флаги</label>
@@ -115,20 +116,20 @@ export function ProductList() {
           </div>
           <div>
             <label>Сортировка</label>
-            <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
+            <Select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
               <option value="name">Название</option>
               <option value="calories">Калорийность</option>
               <option value="protein">Белки</option>
               <option value="fat">Жиры</option>
               <option value="carbs">Углеводы</option>
-            </select>
+            </Select>
           </div>
           <div>
             <label>Порядок</label>
-            <select value={order} onChange={(e) => setOrder(e.target.value as "asc" | "desc")}>
+            <Select value={order} onChange={(e) => setOrder(e.target.value as "asc" | "desc")}>
               <option value="asc">По возрастанию</option>
               <option value="desc">По убыванию</option>
-            </select>
+            </Select>
           </div>
         </div>
       </div>

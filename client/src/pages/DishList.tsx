@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchDishes } from "../api";
 import type { Dish, DishCategory } from "../types";
+import { Select } from "../components/Select";
 
 const DISH_CATS: { value: DishCategory; label: string }[] = [
   { value: "DESSERT", label: "Десерт" },
@@ -64,14 +65,14 @@ export function DishList() {
         </div>
         <div>
           <label>Категория блюда</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)}>
+          <Select value={category} onChange={(e) => setCategory(e.target.value)}>
             <option value="">Все</option>
             {DISH_CATS.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
           <label>Флаги</label>

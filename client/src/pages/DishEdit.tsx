@@ -4,6 +4,7 @@ import { deleteDish, fetchDish, fetchProducts, previewDishKbju, saveDish, upload
 import { extractDishMacro } from "../lib/macros";
 import { allowedDishFlagsFromProducts, sanitizeDishFlags } from "../lib/dishFlags";
 import type { DishCategory, FlagKey, Product } from "../types";
+import { Select } from "../components/Select";
 
 const DISH_CATS: { value: DishCategory; label: string }[] = [
   { value: "DESSERT", label: "Десерт" },
@@ -22,6 +23,11 @@ const FLAGS: { key: FlagKey; label: string }[] = [
 ];
 
 type IngRow = { productId: string; grams: number };
+type Kbju = { caloriesPerPortion: number; proteinPerPortion: number; fatPerPortion: number; carbsPerPortion: number };
+
+function round2(n: number) {
+  return Math.round(n * 100) / 100;
+}
 
 export function DishEdit() {
   const { id } = useParams();
@@ -39,6 +45,8 @@ export function DishEdit() {
   const [proteinPerPortion, setProteinPerPortion] = useState(0);
   const [fatPerPortion, setFatPerPortion] = useState(0);
   const [carbsPerPortion, setCarbsPerPortion] = useState(0);
+  const [autoKbju, setAutoKbju] = useState(true);
+  const [draftKbju, setDraftKbju] = useState<Kbju | null>(null);
   const [loading, setLoading] = useState(!!id);
   const [err, setErr] = useState<string | null>(null);
 
@@ -71,14 +79,23 @@ export function DishEdit() {
     if (rows.length === 0) return;
     try {
       const k = await previewDishKbju(rows.map((r) => ({ productId: r.productId, grams: r.grams })));
-      setCaloriesPerPortion(k.caloriesPerPortion);
-      setProteinPerPortion(k.proteinPerPortion);
-      setFatPerPortion(k.fatPerPortion);
-      setCarbsPerPortion(k.carbsPerPortion);
+      const next: Kbju = {
+        caloriesPerPortion: round2(k.caloriesPerPortion),
+        proteinPerPortion: round2(k.proteinPerPortion),
+        fatPerPortion: round2(k.fatPerPortion),
+        carbsPerPortion: round2(k.carbsPerPortion),
+      };
+      setDraftKbju(next);
+      if (autoKbju) {
+        setCaloriesPerPortion(next.caloriesPerPortion);
+        setProteinPerPortion(next.proteinPerPortion);
+        setFatPerPortion(next.fatPerPortion);
+        setCarbsPerPortion(next.carbsPerPortion);
+      }
     } catch {
       /* ignore preview errors until submit */
     }
-  }, [ingredients]);
+  }, [ingredients, autoKbju]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -102,6 +119,8 @@ export function DishEdit() {
         setProteinPerPortion(d.proteinPerPortion);
         setFatPerPortion(d.fatPerPortion);
         setCarbsPerPortion(d.carbsPerPortion);
+        setAutoKbju(false);
+        setDraftKbju(null);
         setIngredients(
           d.ingredients.length
             ? d.ingredients.map((i) => ({ productId: i.productId, grams: i.grams }))
@@ -127,6 +146,18 @@ export function DishEdit() {
     }
   }
 
+  function bjuSumPerPortion() {
+    return proteinPerPortion + fatPerPortion + carbsPerPortion;
+  }
+
+  function applyDraftKbju() {
+    if (!draftKbju) return;
+    setCaloriesPerPortion(draftKbju.caloriesPerPortion);
+    setProteinPerPortion(draftKbju.proteinPerPortion);
+    setFatPerPortion(draftKbju.fatPerPortion);
+    setCarbsPerPortion(draftKbju.carbsPerPortion);
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
@@ -137,6 +168,10 @@ export function DishEdit() {
     }
     if (name.trim().length < 2) {
       setErr("Название не короче 2 символов");
+      return;
+    }
+    if (bjuSumPerPortion() > portionSizeG + 1e-6) {
+      setErr("Нельзя сохранить: сумма Б+Ж+У на порцию не может превышать граммы порции.");
       return;
     }
     try {
@@ -207,81 +242,132 @@ export function DishEdit() {
         </div>
         <div>
           <label>Категория блюда</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value as DishCategory)}>
+          <Select value={category} onChange={(e) => setCategory(e.target.value as DishCategory)}>
             {DISH_CATS.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <label>Размер порции, г</label>
           <input
             type="number"
-            step="0.1"
+            step="0.01"
             min={0.1}
             value={portionSizeG}
             onChange={(e) => setPortionSizeG(parseFloat(e.target.value) || 0)}
           />
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
-          <label>КБЖУ на порцию (черновик — пересчитывается из состава; можно править вручную)</label>
-          <div className="row">
-            <input
-              type="number"
-              step="0.1"
-              min={0}
-              value={caloriesPerPortion}
-              onChange={(e) => setCaloriesPerPortion(parseFloat(e.target.value) || 0)}
-              title="ккал"
-            />
-            <input
-              type="number"
-              step="0.1"
-              min={0}
-              value={proteinPerPortion}
-              onChange={(e) => setProteinPerPortion(parseFloat(e.target.value) || 0)}
-              title="белки"
-            />
-            <input
-              type="number"
-              step="0.1"
-              min={0}
-              value={fatPerPortion}
-              onChange={(e) => setFatPerPortion(parseFloat(e.target.value) || 0)}
-              title="жиры"
-            />
-            <input
-              type="number"
-              step="0.1"
-              min={0}
-              value={carbsPerPortion}
-              onChange={(e) => setCarbsPerPortion(parseFloat(e.target.value) || 0)}
-              title="углеводы"
-            />
+          <label>КБЖУ на порцию</label>
+          <div className="row" style={{ justifyContent: "space-between" }}>
+            <div className="row">
+              <label className="row" style={{ cursor: "pointer", gap: "0.4rem" }}>
+                <input
+                  type="checkbox"
+                  checked={autoKbju}
+                  onChange={(e) => {
+                    const next = e.target.checked;
+                    setAutoKbju(next);
+                    if (next) applyDraftKbju();
+                  }}
+                />
+                Авто‑пересчёт из состава
+              </label>
+              {!autoKbju && draftKbju && (
+                <button type="button" className="secondary" onClick={applyDraftKbju}>
+                  Применить черновик
+                </button>
+              )}
+            </div>
+            {draftKbju && !autoKbju && (
+              <span className="muted">
+                Черновик: {draftKbju.caloriesPerPortion} ккал, {draftKbju.proteinPerPortion} / {draftKbju.fatPerPortion} /{" "}
+                {draftKbju.carbsPerPortion} г
+              </span>
+            )}
           </div>
+
+          <div className="grid cols-2" style={{ marginTop: "0.5rem" }}>
+            <div>
+              <label>Калории, ккал/порция</label>
+              <input
+                type="number"
+                step="0.01"
+                min={0}
+                value={caloriesPerPortion}
+                onChange={(e) => {
+                  setAutoKbju(false);
+                  setCaloriesPerPortion(parseFloat(e.target.value) || 0);
+                }}
+              />
+            </div>
+            <div>
+              <label>Белки, г/порция</label>
+              <input
+                type="number"
+                step="0.01"
+                min={0}
+                value={proteinPerPortion}
+                onChange={(e) => {
+                  setAutoKbju(false);
+                  setProteinPerPortion(parseFloat(e.target.value) || 0);
+                }}
+              />
+            </div>
+            <div>
+              <label>Жиры, г/порция</label>
+              <input
+                type="number"
+                step="0.01"
+                min={0}
+                value={fatPerPortion}
+                onChange={(e) => {
+                  setAutoKbju(false);
+                  setFatPerPortion(parseFloat(e.target.value) || 0);
+                }}
+              />
+            </div>
+            <div>
+              <label>Углеводы, г/порция</label>
+              <input
+                type="number"
+                step="0.01"
+                min={0}
+                value={carbsPerPortion}
+                onChange={(e) => {
+                  setAutoKbju(false);
+                  setCarbsPerPortion(parseFloat(e.target.value) || 0);
+                }}
+              />
+            </div>
+          </div>
+
+          <p className="muted" style={{ margin: "0.5rem 0 0" }}>
+            Проверка: Б+Ж+У = {round2(bjuSumPerPortion())} г на порцию при размере порции {round2(portionSizeG)} г{" "}
+            {bjuSumPerPortion() > portionSizeG + 1e-6 ? "— превышение" : ""}
+          </p>
         </div>
 
         <div style={{ gridColumn: "1 / -1" }}>
           <label>Состав (продукты и количество, г)</label>
           {ingredients.map((row, idx) => (
             <div key={idx} className="row" style={{ marginBottom: "0.5rem" }}>
-              <select
-                value={row.productId}
-                onChange={(e) => updateIngredient(idx, { productId: e.target.value })}
-                style={{ flex: 2, minWidth: "200px" }}
-              >
-                <option value="">— продукт —</option>
-                {catalog.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+              <div style={{ flex: 2, minWidth: "200px" }}>
+                <Select value={row.productId} onChange={(e) => updateIngredient(idx, { productId: e.target.value })}>
+                  <option value="">— продукт —</option>
+                  {catalog.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
               <input
                 type="number"
-                step="0.1"
+                step="0.01"
                 min={0.1}
                 value={row.grams}
                 onChange={(e) => updateIngredient(idx, { grams: parseFloat(e.target.value) || 0 })}
@@ -315,7 +401,7 @@ export function DishEdit() {
 
         <div>
           <label>Флаги блюда</label>
-          <div className="row" style={{ marginTop: "0.35rem", flexDirection: "column", alignItems: "flex-start" }}>
+          <div className="row" style={{ marginTop: "0.35rem" }}>
             {FLAGS.map((f) => (
               <label key={f.key} className="row" style={{ cursor: allowedFlagSet.has(f.key) ? "pointer" : "not-allowed" }}>
                 <input

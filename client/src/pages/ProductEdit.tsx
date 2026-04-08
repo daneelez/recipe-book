@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { deleteProduct, fetchProduct, saveProduct, uploadPhotos } from "../api";
 import type { FlagKey, ProductCategory, CookingNeed } from "../types";
+import { Select } from "../components/Select";
 
 const PRODUCT_CATEGORIES: { value: ProductCategory; label: string }[] = [
   { value: "FROZEN", label: "Замороженный" },
@@ -213,23 +214,23 @@ export function ProductEdit() {
         </div>
         <div>
           <label>Категория</label>
-          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ProductCategory })}>
+          <Select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ProductCategory })}>
             {PRODUCT_CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <label>Готовка</label>
-          <select value={form.cookingNeed} onChange={(e) => setForm({ ...form, cookingNeed: e.target.value as CookingNeed })}>
+          <Select value={form.cookingNeed} onChange={(e) => setForm({ ...form, cookingNeed: e.target.value as CookingNeed })}>
             {COOKING.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
           <label>Состав (текст)</label>
