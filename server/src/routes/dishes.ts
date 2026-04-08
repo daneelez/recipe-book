@@ -4,7 +4,7 @@ import { prisma } from "../prisma.js";
 import { normalizeProductFlagsForDish, parseFlagsJson, serializeFlags } from "../lib/flags.js";
 import type { FlagKey } from "../lib/enums.js";
 import { extractDishMacro } from "../lib/macros.js";
-import { computePortionKbju } from "../lib/kbju.js";
+import { computePortionKbju } from "../utils/kbju.js";
 import { dishToDto, productToDto } from "../lib/serialize.js";
 import { dishCreateSchema, ValidationError } from "../lib/validation.js";
 

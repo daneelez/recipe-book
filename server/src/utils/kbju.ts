@@ -6,6 +6,15 @@ export type IngredientRow = {
   grams: number;
 };
 
+/**
+ * Computes dish nutrition values for a single portion using product KBJU per 100g.
+ *
+ * Formula (per requirements):
+ * - caloriesPerPortion = Σ(caloriesPer100g * grams / 100)
+ * - proteinPerPortion  = Σ(proteinPer100g  * grams / 100)
+ * - fatPerPortion      = Σ(fatPer100g      * grams / 100)
+ * - carbsPerPortion    = Σ(carbsPer100g    * grams / 100)
+ */
 export function computePortionKbju(ingredients: IngredientRow[]): {
   caloriesPerPortion: number;
   proteinPerPortion: number;
@@ -26,14 +35,3 @@ export function computePortionKbju(ingredients: IngredientRow[]): {
   return { caloriesPerPortion, proteinPerPortion, fatPerPortion, carbsPerPortion };
 }
 
-/** Сумма БЖУ на 100 г блюда (для валидации) */
-export function dishBjuSumPer100g(
-  proteinPerPortion: number,
-  fatPerPortion: number,
-  carbsPerPortion: number,
-  portionSizeG: number
-): number {
-  if (portionSizeG <= 0) return Infinity;
-  const k = 100 / portionSizeG;
-  return proteinPerPortion * k + fatPerPortion * k + carbsPerPortion * k;
-}
