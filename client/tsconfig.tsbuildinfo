@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/types.ts","./src/vite-env.d.ts","./src/lib/dishflags.ts","./src/lib/macros.ts","./src/pages/dishedit.tsx","./src/pages/dishlist.tsx","./src/pages/productedit.tsx","./src/pages/productlist.tsx"],"version":"5.8.3"}

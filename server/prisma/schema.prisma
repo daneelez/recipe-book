@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum ProductCategory {
+  FROZEN
+  MEAT
+  VEGETABLES
+  GREENS
+  SPICES
+  GRAINS
+  CANNED
+  LIQUID
+  SWEETS
+}
+
+enum CookingNeed {
+  READY_TO_EAT
+  SEMI_FINISHED
+  REQUIRES_COOKING
+}
+
+enum DishCategory {
+  DESSERT
+  FIRST
+  SECOND
+  DRINK
+  SALAD
+  SOUP
+  SNACK
+}
+
+model Product {
+  id              String           @id @default(cuid())
+  name            String
+  photosJson      String           @default("[]")
+  caloriesPer100g Float
+  proteinPer100g  Float
+  fatPer100g      Float
+  carbsPer100g    Float
+  composition     String?
+  category        ProductCategory
+  cookingNeed     CookingNeed
+  flagsJson       String           @default("[]")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime?
+  dishIngredients DishIngredient[]
+}
+
+model Dish {
+  id                 String           @id @default(cuid())
+  name               String
+  photosJson         String           @default("[]")
+  caloriesPerPortion Float
+  proteinPerPortion  Float
+  fatPerPortion      Float
+  carbsPerPortion    Float
+  portionSizeG       Float
+  category           DishCategory
+  flagsJson          String           @default("[]")
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime?
+  ingredients        DishIngredient[]
+}
+
+model DishIngredient {
+  dishId    String
+  productId String
+  grams     Float
+  dish      Dish    @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@id([dishId, productId])
+}
