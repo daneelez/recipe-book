@@ -4,3 +4,4 @@ dist
 uploads
 .env.local
 .DS_Store
+server/coverage
