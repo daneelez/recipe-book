@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { computePortionKbju, type IngredientRow } from "../kbju.js";
 
+const DEFAULT_INGREDIENT = { caloriesPer100g: 100, proteinPer100g: 10, fatPer100g: 5, carbsPer100g: 20 };
+
 describe("utils/kbju/computePortionKbju", () => {
   it("пустой список ингредиентов: возвращает нули", () => {
     const r = computePortionKbju([]);
@@ -14,28 +16,28 @@ describe("utils/kbju/computePortionKbju", () => {
 
   it.each([
     {
-      title: "граммы=0: не дают вклада",
-      ingredients: [{ caloriesPer100g: 100, proteinPer100g: 10, fatPer100g: 5, carbsPer100g: 20, grams: 0 }],
+      title: "правильно обрабатывает нулевые граммы",
+      ingredients: [{ ...DEFAULT_INGREDIENT, grams: 0 }],
       expected: { caloriesPerPortion: 0, proteinPerPortion: 0, fatPerPortion: 0, carbsPerPortion: 0 },
     },
     {
-      title: "граммы=100 не влияют на КБЖУ",
-      ingredients: [{ caloriesPer100g: 123, proteinPer100g: 4, fatPer100g: 5.5, carbsPer100g: 20, grams: 100 }],
-      expected: { caloriesPerPortion: 123, proteinPerPortion: 4, fatPerPortion: 5.5, carbsPerPortion: 20 },
+      title: "правильно обрабатывает 100 грамм",
+      ingredients: [{ ...DEFAULT_INGREDIENT, grams: 100 }],
+      expected: { caloriesPerPortion: 100, proteinPerPortion: 10, fatPerPortion: 5, carbsPerPortion: 20 },
     },
     {
-      title: "правильно отрабатывает для любого количества грамм",
-      ingredients: [{ caloriesPer100g: 50, proteinPer100g: 1, fatPer100g: 2, carbsPer100g: 3, grams: 157 }],
-      expected: { caloriesPerPortion: 50 * 1.57, proteinPerPortion: 1.57, fatPerPortion: 2 * 1.57, carbsPerPortion: 3 * 1.57 },
+      title: "правильно обрабатывает любое количество грамм",
+      ingredients: [{ ...DEFAULT_INGREDIENT, grams: 157 }],
+      expected: { caloriesPerPortion: 157, proteinPerPortion: 15.7, fatPerPortion: 7.85, carbsPerPortion: 31.4 },
     },
     {
       title: "десятичные граммы: масштабируются пропорционально",
-      ingredients: [{ caloriesPer100g: 80, proteinPer100g: 6.25, fatPer100g: 0.1, carbsPer100g: 12.5, grams: 0.01 }],
+      ingredients: [{ ...DEFAULT_INGREDIENT, grams: 0.01 }],
       expected: {
-        caloriesPerPortion: 0.008,
-        proteinPerPortion: 0.000625,
+        caloriesPerPortion: 0.01,
+        proteinPerPortion: 0.001,
         fatPerPortion: 0.00001,
-        carbsPerPortion: 0.00125,
+        carbsPerPortion: 0.0002,
       },
     },
   ] satisfies Array<{
