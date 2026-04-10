@@ -26,6 +26,8 @@ export function computePortionKbju(ingredients: IngredientRow[]): {
   let fatPerPortion = 0;
   let carbsPerPortion = 0;
   for (const ing of ingredients) {
+    if (ing.grams <= 0) continue;
+
     const k = ing.grams / 100;
     caloriesPerPortion += ing.caloriesPer100g * k;
     proteinPerPortion += ing.proteinPer100g * k;
