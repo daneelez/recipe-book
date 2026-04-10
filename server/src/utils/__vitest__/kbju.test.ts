@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { computePortionKbju, type IngredientRow } from "../kbju.js";
+import { describe, expect, it } from 'vitest'
+import { computePortionKbju } from '../kbju.js'
 import { BASE, createIngredient, GRAMS, PRECISION, scale } from './config.js'
 
 describe("utils/kbju/computePortionKbju", () => {
@@ -46,7 +46,7 @@ describe("utils/kbju/computePortionKbju", () => {
   it.each([
     {
       title: "все ингредиенты 0 г",
-      ingredients: [GRAMS.ZERO, GRAMS.ZERO],
+      ingredients: [GRAMS.ZERO, GRAMS.ZERO, GRAMS.ZERO],
     },
     {
       title: "смешанный (0 + нормальный)",
@@ -81,55 +81,42 @@ describe("utils/kbju/computePortionKbju", () => {
   /**
    * Разные пропорции БЖУ
    */
-  it.each([
-    {
-      title: "разные белки",
-      ingredients: [
-        createIngredient(GRAMS.NORMAL, { proteinPer100g: 11 }),
-        createIngredient(GRAMS.NORMAL, { proteinPer100g: 50 }),
-      ],
-      expectedProtein: scale(11, GRAMS.NORMAL) + scale(50, GRAMS.NORMAL),
-    },
-    {
-      title: "все БЖУ 0",
-      ingredients: [
-        createIngredient(GRAMS.NORMAL, {
-          caloriesPer100g: 0,
-          proteinPer100g: 0,
-          fatPer100g: 0,
-          carbsPer100g: 0,
-        }),
-      ],
-      expectedAllZero: true,
-    },
-  ])("$title", ({ ingredients, expectedProtein, expectedAllZero }) => {
-    const r = computePortionKbju(ingredients);
+  it("разные белки", () => {
+    const r = computePortionKbju([
+      createIngredient(GRAMS.NORMAL, { proteinPer100g: 11 }),
+      createIngredient(GRAMS.NORMAL, { proteinPer100g: 50 }),
+    ]);
 
-    if (expectedAllZero) {
-      expect(r).toEqual({
-        caloriesPerPortion: 0,
-        proteinPerPortion: 0,
-        fatPerPortion: 0,
-        carbsPerPortion: 0,
-      });
-      return;
-    }
+    const expectedProtein= scale(11, GRAMS.NORMAL) + scale(50, GRAMS.NORMAL)
 
-    if (expectedProtein !== undefined) {
-      expect(r.proteinPerPortion).toBeCloseTo(expectedProtein, PRECISION);
-    }
+    expect(r.proteinPerPortion).toBeCloseTo(expectedProtein, PRECISION);
+  });
+
+  it("все БЖУ 0", () => {
+    const r = computePortionKbju([
+      createIngredient(GRAMS.NORMAL, {
+        caloriesPer100g: 0,
+        proteinPer100g: 0,
+        fatPer100g: 0,
+        carbsPer100g: 0,
+      }),
+    ]);
+
+    expect(r).toEqual({
+      caloriesPerPortion: 0,
+      proteinPerPortion: 0,
+      fatPerPortion: 0,
+      carbsPerPortion: 0,
+    });
   });
 
   /**
    * Округление
    */
-  it.each([
-    {
-      title: "округление до 2 знаков",
-      grams: 33.3333,
-      digits: 2,
-    },
-  ])("$title", ({ grams, digits }) => {
+  it("округление до 2 знаков", () => {
+    const grams = 33.3333
+    const digits = 2
+
     const r = computePortionKbju([createIngredient(grams)]);
 
     const rounded = Number(r.caloriesPerPortion.toFixed(digits));
@@ -141,12 +128,8 @@ describe("utils/kbju/computePortionKbju", () => {
   /**
    * Корнер кейсы
    */
-  it.each([
-    {
-      title: "отрицательные граммы",
-      ingredients: [-100, 100],
-    },
-  ])("$title", ({ ingredients }) => {
+  it("Корректно обрабатывает отрицательные граммы", () => {
+    const ingredients = [-100, 100];
     const r = computePortionKbju(ingredients.map((g) => createIngredient(g)));
 
     const expected = Number(scale(BASE.caloriesPer100g, GRAMS.NORMAL).toFixed(PRECISION));
