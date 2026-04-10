@@ -149,7 +149,9 @@ describe("utils/kbju/computePortionKbju", () => {
   ])("$title", ({ ingredients }) => {
     const r = computePortionKbju(ingredients.map((g) => createIngredient(g)));
 
-    expect(r.caloriesPerPortion).toBeGreaterThanOrEqual(0);
+    const expected = Number(scale(BASE.caloriesPer100g, GRAMS.NORMAL).toFixed(PRECISION));
+
+    expect(r.caloriesPerPortion).toBeCloseTo(expected);
   });
 
   /**
