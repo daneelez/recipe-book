@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { fetchDishes } from "../api";
-import type { Dish, DishCategory } from "../types";
-import { Select } from "../components/Select";
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { fetchDishes } from '../api'
+import type { Dish, DishCategory } from '../types'
+import { Select } from '../components/Select'
 
 const DISH_CATS: { value: DishCategory; label: string }[] = [
   { value: "DESSERT", label: "Десерт" },
@@ -98,6 +98,7 @@ export function DishList() {
             <tr>
               <th></th>
               <th>Название</th>
+              <th>Редактировать</th>
               <th>Категория</th>
               <th>ккал / порция</th>
               <th>Порция, г</th>
@@ -114,7 +115,10 @@ export function DishList() {
                   )}
                 </td>
                 <td>
-                  <Link to={`/dishes/${d.id}`}>{d.name}</Link>
+                  <Link to={`/dishes/${d.id}/view`}>{d.name}</Link>
+                </td>
+                <td>
+                  <Link to={`/dishes/${d.id}`}>Изменить</Link>
                 </td>
                 <td>{d.categoryLabel}</td>
                 <td>{d.caloriesPerPortion.toFixed(1)}</td>

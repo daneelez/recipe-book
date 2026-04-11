@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { fetchProducts } from "../api";
-import type { Product, ProductCategory, CookingNeed } from "../types";
-import { Select } from "../components/Select";
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { fetchProducts } from '../api'
+import type { CookingNeed, Product, ProductCategory } from '../types'
+import { Select } from '../components/Select'
 
 const PRODUCT_CATEGORIES: { value: ProductCategory; label: string }[] = [
   { value: "FROZEN", label: "Замороженный" },
@@ -142,6 +142,7 @@ export function ProductList() {
             <tr>
               <th></th>
               <th>Название</th>
+              <th>Редактировать</th>
               <th>Категория</th>
               <th>ккал/100г</th>
               <th>Б / Ж / У</th>
@@ -158,7 +159,10 @@ export function ProductList() {
                   )}
                 </td>
                 <td>
-                  <Link to={`/products/${p.id}`}>{p.name}</Link>
+                  <Link to={`/products/${p.id}/view`}>{p.name}</Link>
+                </td>
+                <td>
+                  <Link to={`/products/${p.id}`}>Изменить</Link>
                 </td>
                 <td>{p.categoryLabel}</td>
                 <td>{p.caloriesPer100g.toFixed(1)}</td>

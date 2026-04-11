@@ -1,8 +1,10 @@
-import { NavLink, Route, Routes, Navigate } from "react-router-dom";
-import { ProductList } from "./pages/ProductList";
-import { ProductEdit } from "./pages/ProductEdit";
-import { DishList } from "./pages/DishList";
-import { DishEdit } from "./pages/DishEdit";
+import { Navigate, NavLink, Route, Routes } from 'react-router-dom'
+import { ProductList } from './pages/ProductList'
+import { ProductEdit } from './pages/ProductEdit'
+import { DishList } from './pages/DishList'
+import { DishEdit } from './pages/DishEdit'
+import { ProductPage } from './pages/ProductPage.tsx'
+import { DishPage } from './pages/DishPage.tsx'
 
 export default function App() {
   return (
@@ -26,6 +28,9 @@ export default function App() {
         <Route path="/dishes" element={<DishList />} />
         <Route path="/dishes/new" element={<DishEdit />} />
         <Route path="/dishes/:id" element={<DishEdit />} />
+
+        <Route path="/products/:id/view" element={<ProductPage />} />
+        <Route path="/dishes/:id/view" element={<DishPage />} />
       </Routes>
     </div>
   );
