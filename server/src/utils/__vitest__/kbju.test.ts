@@ -74,8 +74,14 @@ describe("utils/kbju/computePortionKbju", () => {
       0
     );
 
+    const expectedCarbs = ingredients.reduce((sum, g) => sum + scale(BASE.carbsPer100g, g), 0);
+
+    const expectedFat = ingredients.reduce((sum, g) => sum + scale(BASE.fatPer100g, g), 0);
+
     expect(r.caloriesPerPortion).toBeCloseTo(expectedCalories, PRECISION);
     expect(r.proteinPerPortion).toBeCloseTo(expectedProtein, PRECISION);
+    expect(r.carbsPerPortion).toBeCloseTo(expectedCarbs, PRECISION);
+    expect(r.fatPerPortion).toBeCloseTo(expectedFat, PRECISION);
   });
 
   /**
@@ -128,8 +134,8 @@ describe("utils/kbju/computePortionKbju", () => {
   /**
    * Корнер кейсы
    */
-  it("Корректно обрабатывает отрицательные граммы", () => {
-    const ingredients = [-100, 100];
+  it("Корректно пропускает отрицательные граммы", () => {
+    const ingredients = [-GRAMS.NORMAL, GRAMS.NORMAL];
     const r = computePortionKbju(ingredients.map((g) => createIngredient(g)));
 
     const expected = Number(scale(BASE.caloriesPer100g, GRAMS.NORMAL).toFixed(PRECISION));
