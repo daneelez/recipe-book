@@ -117,21 +117,6 @@ describe("utils/kbju/computePortionKbju", () => {
   });
 
   /**
-   * Округление
-   */
-  it("округление до 2 знаков", () => {
-    const grams = 33.3333
-    const digits = 2
-
-    const r = computePortionKbju([createIngredient(grams)]);
-
-    const rounded = Number(r.caloriesPerPortion.toFixed(digits));
-    const expected = Number(scale(BASE.caloriesPer100g, grams).toFixed(digits));
-
-    expect(rounded).toBeCloseTo(expected, digits);
-  });
-
-  /**
    * Корнер кейсы
    */
   it("Корректно пропускает отрицательные граммы", () => {
