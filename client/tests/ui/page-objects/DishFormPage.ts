@@ -1,8 +1,10 @@
-import type { Locator, Page } from "@playwright/test";
-import { qaSelectors } from "../support/selectors";
+import type { Locator, Page } from '@playwright/test'
+import { qaSelectors } from '../support/selectors'
+import { expect } from '../fixtures'
 
 export class DishFormPage {
   readonly page: Page;
+
   readonly nameInput: Locator;
   readonly portionSizeInput: Locator;
   readonly caloriesInput: Locator;
@@ -19,6 +21,7 @@ export class DishFormPage {
 
   constructor(page: Page) {
     this.page = page;
+
     this.nameInput = page.locator(qaSelectors.dishForm.nameInput);
     this.portionSizeInput = page.locator(qaSelectors.dishForm.portionSizeInput);
     this.caloriesInput = page.locator(qaSelectors.dishForm.caloriesInput);
@@ -38,6 +41,14 @@ export class DishFormPage {
     await this.page.goto("/dishes/new");
   }
 
+  async openEdit(id: string): Promise<void> {
+    await this.page.goto(`/dishes/${id}`);
+  }
+
+  async openView(id: string): Promise<void> {
+    await this.page.goto(`/dishes/${id}/view`);
+  }
+
   async openList(): Promise<void> {
     await this.page.goto("/dishes");
   }
@@ -47,40 +58,76 @@ export class DishFormPage {
     await this.categorySelect.selectOption("FIRST");
     await this.portionSizeInput.fill("300");
     await this.caloriesInput.fill("200");
-    await this.proteinInput.fill("20");
-    await this.fatInput.fill("10");
-    await this.carbsInput.fill("30");
+    await this.setBju(20, 10, 30);
   }
 
-  async selectIngredientByName(name: string): Promise<void> {
-    await this.ingredientProductSelect.selectOption({ label: name });
-    await this.ingredientGramsInput.fill("100");
+  async setPortionSize(value: number): Promise<void> {
+    await this.portionSizeInput.fill(String(value));
   }
 
-  async setMacros(protein: number, fat: number, carbs: number): Promise<void> {
+  async setCalories(value: number): Promise<void> {
+    await this.caloriesInput.fill(String(value));
+  }
+
+  async setBju(protein: number, fat: number, carbs: number): Promise<void> {
     await this.proteinInput.fill(String(protein));
     await this.fatInput.fill(String(fat));
     await this.carbsInput.fill(String(carbs));
+  }
+
+  async selectCategory(value: string): Promise<void> {
+    await this.categorySelect.selectOption(value);
+  }
+
+  async addIngredient(productName: string, grams = 100): Promise<void> {
+    await this.ingredientProductSelect.selectOption({ label: productName });
+    await this.ingredientGramsInput.fill(String(grams));
+    await this.addIngredientButton.click();
   }
 
   async submit(): Promise<void> {
     await this.saveButton.click();
   }
 
+  async delete(): Promise<void> {
+    await this.deleteButton.click();
+  }
+
+  async expectValidationError(): Promise<void> {
+    await expect(this.errorMessage).toBeVisible();
+  }
+
   async createDishViaUi(params: {
     name: string;
     ingredientName: string;
+    ingredientGrams?: number;
+    portionSize?: number;
+    calories?: number;
     protein?: number;
     fat?: number;
     carbs?: number;
-    portionSize?: number;
+    category?: string;
   }): Promise<void> {
     await this.openNew();
     await this.fillBaseDish(params.name);
-    await this.selectIngredientByName(params.ingredientName);
-    await this.portionSizeInput.fill(String(params.portionSize ?? 300));
-    await this.setMacros(params.protein ?? 20, params.fat ?? 10, params.carbs ?? 20);
+
+    await this.setPortionSize(params.portionSize ?? 300);
+    await this.setCalories(params.calories ?? 200);
+    await this.setBju(
+      params.protein ?? 20,
+      params.fat ?? 10,
+      params.carbs ?? 30,
+    );
+
+    if (params.category) {
+      await this.selectCategory(params.category);
+    }
+
+    await this.addIngredient(
+      params.ingredientName,
+      params.ingredientGrams ?? 100,
+    );
+
     await this.submit();
   }
-
 }

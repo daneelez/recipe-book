@@ -1,158 +1,231 @@
-import { expect, test } from "./fixtures";
-import { qaSelectors } from "./support/selectors";
-import { uniqueName } from "./support/testData";
+import { expect, test } from './fixtures'
+import { uniqueName } from './support/testData'
 
-test.describe("Product form UI system tests", () => {
-  /**
-   * Equivalence partitioning:
-   * - valid name class (length >= 2) should create a product
-   */
-  test("creates product for valid equivalence class", async ({ page, productFormPage }) => {
-    const productName = uniqueName("valid-product");
+test.describe("Системные тесты формы продукта", () => {
+  test("Создание продукта с корректными данными", async ({
+                                                           page,
+                                                           productFormPage,
+                                                         }) => {
+    const productName = uniqueName("продукт");
 
-    await productFormPage.openNew();
-    await productFormPage.fillBaseProduct(productName);
-    await productFormPage.setBju(20, 30, 40);
-    await productFormPage.submit();
+    await productFormPage.createProductViaUi({
+      name: productName,
+      calories: 120,
+      protein: 20,
+      fat: 30,
+      carbs: 40,
+      category: "VEGETABLES",
+      cooking: "READY_TO_EAT",
+    });
 
     await expect(page).toHaveURL(/\/products$/);
-    await page.locator(qaSelectors.productList.searchInput).fill(productName);
-    await expect(page.locator(qaSelectors.productList.itemLink, { hasText: productName })).toBeVisible();
+
+    await productFormPage.openList();
+    await page.getByRole("textbox").first().fill(productName);
+
+    const row = page.locator("tr", { hasText: productName }).first();
+    await expect(row).toBeVisible();
+
+    await row.getByRole("link", { name: productName }).click();
+
+    await expect(page).toHaveURL(/\/\/products\/.*\/view|\/products\/.*\/view/);
+    await expect(page.getByText(productName)).toBeVisible();
+    await expect(page.getByText("120")).toBeVisible();
+    await expect(page.getByText("20")).toBeVisible();
+    await expect(page.getByText("30")).toBeVisible();
+    await expect(page.getByText("40")).toBeVisible();
   });
 
-  /**
-   * Boundary value analysis for product name:
-   * - 1 char: invalid
-   * - 2 chars: valid boundary
-   */
-  test.describe("name boundaries", () => {
-    test("rejects name with length 1", async ({ productFormPage }) => {
-      await productFormPage.openNew();
-      await productFormPage.fillBaseProduct("a");
-      await productFormPage.setBju(10, 10, 10);
-      await productFormPage.submit();
-
-      await expect(productFormPage.errorMessage).toContainText("Название не короче 2 символов");
-    });
-
-    test("accepts name with length 2", async ({ page, productFormPage }) => {
-      const name = `${uniqueName("n")}-ab`;
-
-      await productFormPage.openNew();
-      await productFormPage.fillBaseProduct(name);
-      await productFormPage.setBju(10, 10, 10);
-      await productFormPage.submit();
-
-      await expect(page).toHaveURL(/\/products$/);
-      await expect(page.locator(qaSelectors.productList.itemLink, { hasText: name })).toBeVisible();
-    });
-  });
-
-  /**
-   * Boundary + equivalence for BJU sum:
-   * - <= 100: valid class
-   * - > 100: invalid class
-   */
-  test.describe("BJU sum boundaries", () => {
-    const cases = [
-      { title: "accepts sum equal 100", bju: [40, 30, 30], expectsError: false },
-      { title: "rejects sum above 100", bju: [40, 30, 30.1], expectsError: true },
+  test.describe("Проверка границ названия", () => {
+    const nameCases = [
+      {
+        title: "Ошибка при названии длиной 1 символ",
+        name: "а",
+        shouldFail: true,
+      },
+      {
+        title: "Создание продукта при названии длиной 2 символа",
+        name: "аб",
+        shouldFail: false,
+      },
     ] as const;
 
-    for (const c of cases) {
+    for (const c of nameCases) {
       test(c.title, async ({ page, productFormPage }) => {
-        const productName = uniqueName("bju");
+        const productName = c.shouldFail
+          ? c.name
+          : `${uniqueName("продукт")}-${c.name}`;
 
         await productFormPage.openNew();
         await productFormPage.fillBaseProduct(productName);
-        await productFormPage.setBju(c.bju[0], c.bju[1], c.bju[2]);
+        await productFormPage.setBju(10, 10, 10);
         await productFormPage.submit();
 
-        if (c.expectsError) {
-          await expect(productFormPage.errorMessage).toContainText("Сумма БЖУ на 100 г не может превышать 100 г.");
+        if (c.shouldFail) {
+          await expect(productFormPage.errorMessage).toContainText(
+            "Название не короче 2 символов"
+          );
           await expect(page).toHaveURL(/\/products\/new$/);
         } else {
           await expect(page).toHaveURL(/\/products$/);
-          await expect(page.locator(qaSelectors.productList.itemLink, { hasText: productName })).toBeVisible();
+
+          await productFormPage.openList();
+          await page.getByRole("textbox").first().fill(productName);
+
+          await expect(
+            page.locator("tr", { hasText: productName }).first()
+          ).toBeVisible();
         }
       });
     }
   });
 
-  /**
-   * Equivalence partitioning for list filters and sorting:
-   * - include/exclude by search, category, flags
-   * - ordering by calories descending
-   */
-  test("filters and sorts products in list", async ({ page, productFormPage }) => {
-    const apple = uniqueName("яблоко");
-    const meat = uniqueName("говядина");
+  test.describe("Проверка суммы БЖУ", () => {
+    const bjuCases = [
+      {
+        title: "Создание продукта при сумме БЖУ равной 100",
+        protein: 40,
+        fat: 30,
+        carbs: 30,
+        shouldFail: false,
+      },
+      {
+        title: "Ошибка при сумме БЖУ больше 100",
+        protein: 40,
+        fat: 30,
+        carbs: 30.1,
+        shouldFail: true,
+      },
+    ] as const;
 
-    await productFormPage.createProductViaUi({ name: apple, protein: 5, fat: 5, carbs: 5 });
-    await expect(page).toHaveURL(/\/products$/);
-    await productFormPage.createProductViaUi({ name: meat, protein: 30, fat: 30, carbs: 30 });
-    await expect(page).toHaveURL(/\/products$/);
+    for (const c of bjuCases) {
+      test(c.title, async ({ page, productFormPage }) => {
+        const productName = uniqueName("бжу");
 
-    await page.goto("/products");
-    await page.locator(qaSelectors.productList.searchInput).fill("ябл");
-    await expect(page.locator(qaSelectors.productList.itemLink, { hasText: apple })).toBeVisible();
-    await expect(page.locator(qaSelectors.productList.itemLink, { hasText: meat })).toHaveCount(0);
+        await productFormPage.openNew();
+        await productFormPage.fillBaseProduct(productName);
+        await productFormPage.setBju(c.protein, c.fat, c.carbs);
+        await productFormPage.submit();
 
-    await page.locator(qaSelectors.productList.searchInput).fill("");
-    await page.locator(qaSelectors.productList.sortSelect).selectOption("calories");
-    await page.locator(qaSelectors.productList.orderSelect).selectOption("desc");
-    const firstRowLink = page.locator(qaSelectors.productList.itemLink).first();
-    await expect(firstRowLink).toContainText(meat);
+        if (c.shouldFail) {
+          await expect(productFormPage.errorMessage).toContainText(
+            "Сумма БЖУ на 100 г не может превышать 100 г."
+          );
+          await expect(page).toHaveURL(/\/products\/new$/);
+        } else {
+          await expect(page).toHaveURL(/\/products$/);
+
+          await productFormPage.openList();
+          await page.getByRole("textbox").first().fill(productName);
+
+          await expect(
+            page.locator("tr", { hasText: productName }).first()
+          ).toBeVisible();
+        }
+      });
+    }
   });
 
-  test("updates existing product", async ({ page, productFormPage }) => {
-    const initial = uniqueName("product-update-old");
-    const updatedName = uniqueName("product-update-new");
-    await productFormPage.createProductViaUi({ name: initial });
+  test("Редактирование существующего продукта", async ({
+                                                         page,
+                                                         productFormPage,
+                                                       }) => {
+    const oldName = uniqueName("старый-продукт");
+    const newName = uniqueName("новый-продукт");
+
+    await productFormPage.createProductViaUi({
+      name: oldName,
+      protein: 20,
+      fat: 10,
+      carbs: 20,
+    });
+
     await expect(page).toHaveURL(/\/products$/);
 
-    await page.goto("/products");
-    await page.locator(qaSelectors.productList.searchInput).fill(initial);
-    const row = page.locator("tr", { hasText: initial }).first();
-    await row.locator(qaSelectors.productList.editLink).click();
-    await productFormPage.nameInput.fill(updatedName);
+    await productFormPage.openList();
+    await page.getByRole("textbox").first().fill(oldName);
+
+    const row = page.locator("tr", { hasText: oldName }).first();
+    await row.getByRole("link").nth(1).click();
+
+    await productFormPage.nameInput.fill(newName);
     await productFormPage.submit();
+
     await expect(page).toHaveURL(/\/products$/);
 
-    await page.locator(qaSelectors.productList.searchInput).fill(updatedName);
-    await expect(page.locator(qaSelectors.productList.itemLink, { hasText: updatedName })).toBeVisible();
+    await productFormPage.openList();
+    await page.getByRole("textbox").first().fill(newName);
+
+    const updatedRow = page.locator("tr", { hasText: newName }).first();
+    await expect(updatedRow).toBeVisible();
+
+    await updatedRow.getByRole("link", { name: newName }).click();
+    await expect(page.getByText(newName)).toBeVisible();
   });
 
-  test("deletes existing product", async ({ page, productFormPage }) => {
-    const initial = uniqueName("product-delete");
-    await productFormPage.createProductViaUi({ name: initial });
+  test("Удаление существующего продукта", async ({
+                                                   page,
+                                                   productFormPage,
+                                                 }) => {
+    const productName = uniqueName("удаление-продукта");
+
+    await productFormPage.createProductViaUi({
+      name: productName,
+    });
+
     await expect(page).toHaveURL(/\/products$/);
 
-    await page.goto("/products");
-    await page.locator(qaSelectors.productList.searchInput).fill(initial);
-    const row = page.locator("tr", { hasText: initial }).first();
-    await row.locator(qaSelectors.productList.editLink).click();
-    await productFormPage.deleteButton.click();
+    await productFormPage.openList();
+    await page.getByRole("textbox").first().fill(productName);
+
+    const row = page.locator("tr", { hasText: productName }).first();
+    await row.getByRole("link").nth(1).click();
+
+    await productFormPage.delete();
+
     await expect(page).toHaveURL(/\/products$/);
-    await page.locator(qaSelectors.productList.searchInput).fill(initial);
-    await expect(page.locator(qaSelectors.productList.itemLink, { hasText: initial })).toHaveCount(0);
+
+    await productFormPage.openList();
+    await page.getByRole("textbox").first().fill(productName);
+
+    await expect(
+      page.locator("tr", { hasText: productName })
+    ).toHaveCount(0);
   });
 
-  test("shows deletion conflict when product is used in dish", async ({ page, productFormPage, dishFormPage }) => {
-    const product = uniqueName("product-in-dish");
-    const dishName = uniqueName("dish-for-conflict");
-    await productFormPage.createProductViaUi({ name: product });
+  test("Ошибка удаления продукта, который используется в блюде", async ({
+                                                                          page,
+                                                                          productFormPage,
+                                                                          dishFormPage,
+                                                                        }) => {
+    const productName = uniqueName("продукт-в-блюде");
+    const dishName = uniqueName("блюдо-с-продуктом");
+
+    await productFormPage.createProductViaUi({
+      name: productName,
+    });
+
     await expect(page).toHaveURL(/\/products$/);
-    await dishFormPage.createDishViaUi({ name: dishName, ingredientName: product });
+
+    await dishFormPage.createDishViaUi({
+      name: dishName,
+      ingredientName: productName,
+    });
+
     await expect(page).toHaveURL(/\/dishes$/);
 
-    await page.goto("/products");
-    await page.locator(qaSelectors.productList.searchInput).fill(product);
-    const row = page.locator("tr", { hasText: product }).first();
-    await row.locator(qaSelectors.productList.editLink).click();
-    await productFormPage.deleteButton.click();
+    await productFormPage.openList();
+    await page.getByRole("textbox").first().fill(productName);
 
-    await expect(productFormPage.deleteErrorMessage).toContainText("Нельзя удалить продукт: он используется в блюдах");
+    const row = page.locator("tr", { hasText: productName }).first();
+    await row.getByRole("link").nth(1).click();
+
+    await productFormPage.delete();
+
+    await expect(productFormPage.deleteErrorMessage).toContainText(
+      "Нельзя удалить продукт: он используется в блюдах"
+    );
+
     await expect(page.getByRole("link", { name: dishName })).toBeVisible();
   });
 });

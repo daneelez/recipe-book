@@ -1,15 +1,16 @@
 import type { Dish } from '../types'
 import { Link } from 'react-router-dom'
+import { qaIds } from '../lib/qaSelectors'
 
 function formatDate(d: string | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleString()
+  if (!d) return "—";
+  return new Date(d).toLocaleString();
 }
 
 export function DishCard({ dish }: { dish: Dish }) {
   return (
     <div className="card grid">
-      <h2>{dish.name}</h2>
+      <h2 data-testid={qaIds.dishCard.title}>{dish.name}</h2>
 
       <div className="row">
         {dish.photos.length ? (
@@ -22,41 +23,56 @@ export function DishCard({ dish }: { dish: Dish }) {
       </div>
 
       <div className="grid cols-4">
-        <div>Ккал: {dish.caloriesPerPortion}</div>
-        <div>Белки: {dish.proteinPerPortion}</div>
-        <div>Жиры: {dish.fatPerPortion}</div>
-        <div>Углеводы: {dish.carbsPerPortion}</div>
+        <div data-testid={qaIds.dishCard.calories}>
+          Ккал: {dish.caloriesPerPortion}
+        </div>
+
+        <div data-testid={qaIds.dishCard.protein}>
+          Белки: {dish.proteinPerPortion}
+        </div>
+
+        <div data-testid={qaIds.dishCard.fat}>
+          Жиры: {dish.fatPerPortion}
+        </div>
+
+        <div data-testid={qaIds.dishCard.carbs}>
+          Углеводы: {dish.carbsPerPortion}
+        </div>
       </div>
 
-      <div>
+      <div data-testid={qaIds.dishCard.portionSize}>
         <strong>Размер порции:</strong> {dish.portionSizeG} г
       </div>
 
-      <div>
+      <div data-testid={qaIds.dishCard.category}>
         <strong>Категория:</strong> {dish.categoryLabel} ({dish.category})
       </div>
 
-      <div>
-        <strong>Флаги:</strong>{' '}
+      <div data-testid={qaIds.dishCard.flags}>
+        <strong>Флаги:</strong>{" "}
         {dish.flags.length
-          ? dish.flagsLabels.join(', ') + ` (${dish.flags.join(', ')})`
-          : '—'}
+          ? dish.flagsLabels.join(", ") + ` (${dish.flags.join(", ")})`
+          : "—"}
       </div>
 
       <div>
         <strong>Ингредиенты:</strong>
-        <table>
+
+        <table data-testid={qaIds.dishCard.ingredientsTable}>
           <thead>
             <tr>
               <th>Продукт</th>
               <th>Граммы</th>
             </tr>
           </thead>
+
           <tbody>
             {dish.ingredients.map((i) => (
               <tr key={i.productId}>
                 <td>
-                  <Link to={`/products/${i.productId}/view`}>{i.product.name}</Link>
+                  <Link to={`/products/${i.productId}/view`}>
+                    {i.product.name}
+                  </Link>
                 </td>
                 <td>{i.grams}</td>
               </tr>
@@ -66,17 +82,21 @@ export function DishCard({ dish }: { dish: Dish }) {
       </div>
 
       <div className="card grid">
-        <div>
+        <div data-testid={qaIds.dishCard.createdAt}>
           <strong>Создано:</strong> {formatDate(dish.createdAt)}
         </div>
-        <div>
+
+        <div data-testid={qaIds.dishCard.updatedAt}>
           <strong>Обновлено:</strong> {formatDate(dish.updatedAt)}
         </div>
       </div>
 
-      <div className="muted">
+      <div
+        className="muted"
+        data-testid={qaIds.dishCard.id}
+      >
         ID: {dish.id}
       </div>
     </div>
-  )
+  );
 }

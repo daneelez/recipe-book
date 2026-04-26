@@ -1,14 +1,15 @@
 import type { Product } from '../types'
+import { qaIds } from '../lib/qaSelectors'
 
 function formatDate(d: string | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleString()
+  if (!d) return "—";
+  return new Date(d).toLocaleString();
 }
 
 export function ProductCard({ product }: { product: Product }) {
   return (
     <div className="card grid">
-      <h2>{product.name}</h2>
+      <h2 data-testid={qaIds.productCard.title}>{product.name}</h2>
 
       <div className="row">
         {product.photos.length ? (
@@ -21,44 +22,59 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
 
       <div className="grid cols-4">
-        <div>Ккал: {product.caloriesPer100g}</div>
-        <div>Белки: {product.proteinPer100g}</div>
-        <div>Жиры: {product.fatPer100g}</div>
-        <div>Углеводы: {product.carbsPer100g}</div>
+        <div data-testid={qaIds.productCard.calories}>
+          Ккал: {product.caloriesPer100g}
+        </div>
+
+        <div data-testid={qaIds.productCard.protein}>
+          Белки: {product.proteinPer100g}
+        </div>
+
+        <div data-testid={qaIds.productCard.fat}>
+          Жиры: {product.fatPer100g}
+        </div>
+
+        <div data-testid={qaIds.productCard.carbs}>
+          Углеводы: {product.carbsPer100g}
+        </div>
       </div>
 
-      <div>
+      <div data-testid={qaIds.productCard.category}>
         <strong>Категория:</strong> {product.categoryLabel} ({product.category})
       </div>
 
-      <div>
+      <div data-testid={qaIds.productCard.cooking}>
         <strong>Готовка:</strong> {product.cookingNeedLabel} ({product.cookingNeed})
       </div>
 
-      <div>
+      <div data-testid={qaIds.productCard.composition}>
         <strong>Состав:</strong>
-        <p>{product.composition || '—'}</p>
+        <p>{product.composition || "—"}</p>
       </div>
 
-      <div>
-        <strong>Флаги:</strong>{' '}
+      <div data-testid={qaIds.productCard.flags}>
+        <strong>Флаги:</strong>{" "}
         {product.flags.length
-          ? product.flagsLabels.join(', ') + ` (${product.flags.join(', ')})`
-          : '—'}
+          ? product.flagsLabels.join(", ") + ` (${product.flags.join(", ")})`
+          : "—"}
       </div>
 
       <div className="card grid">
-        <div>
+        <div data-testid={qaIds.productCard.createdAt}>
           <strong>Создан:</strong> {formatDate(product.createdAt)}
         </div>
-        <div>
+
+        <div data-testid={qaIds.productCard.updatedAt}>
           <strong>Обновлён:</strong> {formatDate(product.updatedAt)}
         </div>
       </div>
 
-      <div className="muted">
+      <div
+        className="muted"
+        data-testid={qaIds.productCard.id}
+      >
         ID: {product.id}
       </div>
     </div>
-  )
+  );
 }
