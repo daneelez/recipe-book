@@ -1,6 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
 import { qaSelectors } from '../support/selectors'
-import { expect } from '../fixtures'
 
 export class ProductFormPage {
   readonly page: Page;
@@ -80,14 +79,6 @@ export class ProductFormPage {
 
   async delete(): Promise<void> {
     await this.deleteButton.click();
-  }
-
-  async expectValidationError(): Promise<void> {
-    await expect(this.errorMessage).toBeVisible();
-  }
-
-  async expectDeleteError(): Promise<void> {
-    await expect(this.deleteErrorMessage).toBeVisible();
   }
 
   async createProductViaUi(params: {

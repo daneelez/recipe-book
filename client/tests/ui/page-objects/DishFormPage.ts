@@ -1,6 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
 import { qaSelectors } from '../support/selectors'
-import { expect } from '../fixtures'
 
 export class DishFormPage {
   readonly page: Page;
@@ -79,9 +78,16 @@ export class DishFormPage {
     await this.categorySelect.selectOption(value);
   }
 
-  async addIngredient(productName: string, grams = 100): Promise<void> {
+  async setPrimaryIngredient(productName: string, grams = 100): Promise<void> {
     await this.ingredientProductSelect.selectOption({ label: productName });
     await this.ingredientGramsInput.fill(String(grams));
+  }
+
+  async selectIngredientByName(productName: string, grams = 100): Promise<void> {
+    await this.setPrimaryIngredient(productName, grams);
+  }
+
+  async addIngredientRow(): Promise<void> {
     await this.addIngredientButton.click();
   }
 
@@ -91,10 +97,6 @@ export class DishFormPage {
 
   async delete(): Promise<void> {
     await this.deleteButton.click();
-  }
-
-  async expectValidationError(): Promise<void> {
-    await expect(this.errorMessage).toBeVisible();
   }
 
   async createDishViaUi(params: {
@@ -123,7 +125,7 @@ export class DishFormPage {
       await this.selectCategory(params.category);
     }
 
-    await this.addIngredient(
+    await this.setPrimaryIngredient(
       params.ingredientName,
       params.ingredientGrams ?? 100,
     );

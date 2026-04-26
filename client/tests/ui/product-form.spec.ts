@@ -5,6 +5,8 @@ test.describe("Системные тесты формы продукта", () =>
   test("Создание продукта с корректными данными", async ({
                                                            page,
                                                            productFormPage,
+                                                           productListPage,
+                                                           productCardPage,
                                                          }) => {
     const productName = uniqueName("продукт");
 
@@ -20,27 +22,26 @@ test.describe("Системные тесты формы продукта", () =>
 
     await expect(page).toHaveURL(/\/products$/);
 
-    await productFormPage.openList();
-    await page.getByRole("textbox").first().fill(productName);
-
-    const row = page.locator("tr", { hasText: productName }).first();
+    await productListPage.open();
+    await productListPage.searchByName(productName);
+    const row = productListPage.rowByName(productName);
     await expect(row).toBeVisible();
 
-    await row.getByRole("link", { name: productName }).click();
+    await productListPage.itemLinkByName(productName).click();
 
     await expect(page).toHaveURL(/\/\/products\/.*\/view|\/products\/.*\/view/);
-    await expect(page.getByText(productName)).toBeVisible();
-    await expect(page.getByText("120")).toBeVisible();
-    await expect(page.getByText("20")).toBeVisible();
-    await expect(page.getByText("30")).toBeVisible();
-    await expect(page.getByText("40")).toBeVisible();
+    await expect(productCardPage.title).toContainText(productName);
+    await expect(productCardPage.calories).toContainText("120");
+    await expect(productCardPage.protein).toContainText("20");
+    await expect(productCardPage.fat).toContainText("30");
+    await expect(productCardPage.carbs).toContainText("40");
   });
 
   test.describe("Проверка границ названия", () => {
     const nameCases = [
       {
         title: "Ошибка при названии длиной 1 символ",
-        name: "а",
+        name: "а ",
         shouldFail: true,
       },
       {
@@ -51,7 +52,7 @@ test.describe("Системные тесты формы продукта", () =>
     ] as const;
 
     for (const c of nameCases) {
-      test(c.title, async ({ page, productFormPage }) => {
+      test(c.title, async ({ page, productFormPage, productListPage }) => {
         const productName = c.shouldFail
           ? c.name
           : `${uniqueName("продукт")}-${c.name}`;
@@ -69,12 +70,10 @@ test.describe("Системные тесты формы продукта", () =>
         } else {
           await expect(page).toHaveURL(/\/products$/);
 
-          await productFormPage.openList();
-          await page.getByRole("textbox").first().fill(productName);
+          await productListPage.open();
+          await productListPage.searchByName(productName);
 
-          await expect(
-            page.locator("tr", { hasText: productName }).first()
-          ).toBeVisible();
+          await expect(productListPage.rowByName(productName)).toBeVisible();
         }
       });
     }
@@ -99,7 +98,7 @@ test.describe("Системные тесты формы продукта", () =>
     ] as const;
 
     for (const c of bjuCases) {
-      test(c.title, async ({ page, productFormPage }) => {
+      test(c.title, async ({ page, productFormPage, productListPage }) => {
         const productName = uniqueName("бжу");
 
         await productFormPage.openNew();
@@ -115,12 +114,9 @@ test.describe("Системные тесты формы продукта", () =>
         } else {
           await expect(page).toHaveURL(/\/products$/);
 
-          await productFormPage.openList();
-          await page.getByRole("textbox").first().fill(productName);
-
-          await expect(
-            page.locator("tr", { hasText: productName }).first()
-          ).toBeVisible();
+          await productListPage.open();
+          await productListPage.searchByName(productName);
+          await expect(productListPage.rowByName(productName)).toBeVisible();
         }
       });
     }
@@ -129,6 +125,8 @@ test.describe("Системные тесты формы продукта", () =>
   test("Редактирование существующего продукта", async ({
                                                          page,
                                                          productFormPage,
+                                                         productListPage,
+                                                         productCardPage,
                                                        }) => {
     const oldName = uniqueName("старый-продукт");
     const newName = uniqueName("новый-продукт");
@@ -142,30 +140,27 @@ test.describe("Системные тесты формы продукта", () =>
 
     await expect(page).toHaveURL(/\/products$/);
 
-    await productFormPage.openList();
-    await page.getByRole("textbox").first().fill(oldName);
-
-    const row = page.locator("tr", { hasText: oldName }).first();
-    await row.getByRole("link").nth(1).click();
+    await productListPage.open();
+    await productListPage.searchByName(oldName);
+    await productListPage.openEditByName(oldName);
 
     await productFormPage.nameInput.fill(newName);
     await productFormPage.submit();
 
     await expect(page).toHaveURL(/\/products$/);
 
-    await productFormPage.openList();
-    await page.getByRole("textbox").first().fill(newName);
-
-    const updatedRow = page.locator("tr", { hasText: newName }).first();
+    await productListPage.open();
+    await productListPage.searchByName(newName);
+    const updatedRow = productListPage.rowByName(newName);
     await expect(updatedRow).toBeVisible();
-
-    await updatedRow.getByRole("link", { name: newName }).click();
-    await expect(page.getByText(newName)).toBeVisible();
+    await productListPage.itemLinkByName(newName).click();
+    await expect(productCardPage.title).toContainText(newName);
   });
 
   test("Удаление существующего продукта", async ({
                                                    page,
                                                    productFormPage,
+                                                   productListPage,
                                                  }) => {
     const productName = uniqueName("удаление-продукта");
 
@@ -175,28 +170,24 @@ test.describe("Системные тесты формы продукта", () =>
 
     await expect(page).toHaveURL(/\/products$/);
 
-    await productFormPage.openList();
-    await page.getByRole("textbox").first().fill(productName);
-
-    const row = page.locator("tr", { hasText: productName }).first();
-    await row.getByRole("link").nth(1).click();
+    await productListPage.open();
+    await productListPage.searchByName(productName);
+    await productListPage.openEditByName(productName);
 
     await productFormPage.delete();
 
     await expect(page).toHaveURL(/\/products$/);
 
-    await productFormPage.openList();
-    await page.getByRole("textbox").first().fill(productName);
-
-    await expect(
-      page.locator("tr", { hasText: productName })
-    ).toHaveCount(0);
+    await productListPage.open();
+    await productListPage.searchByName(productName);
+    await expect(productListPage.rowByName(productName)).toHaveCount(0);
   });
 
   test("Ошибка удаления продукта, который используется в блюде", async ({
                                                                           page,
                                                                           productFormPage,
                                                                           dishFormPage,
+                                                                          productListPage,
                                                                         }) => {
     const productName = uniqueName("продукт-в-блюде");
     const dishName = uniqueName("блюдо-с-продуктом");
@@ -214,11 +205,9 @@ test.describe("Системные тесты формы продукта", () =>
 
     await expect(page).toHaveURL(/\/dishes$/);
 
-    await productFormPage.openList();
-    await page.getByRole("textbox").first().fill(productName);
-
-    const row = page.locator("tr", { hasText: productName }).first();
-    await row.getByRole("link").nth(1).click();
+    await productListPage.open();
+    await productListPage.searchByName(productName);
+    await productListPage.openEditByName(productName);
 
     await productFormPage.delete();
 

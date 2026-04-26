@@ -1,14 +1,8 @@
 import { expect, test } from "./fixtures";
-import { qaSelectors } from "./support/selectors";
 import { uniqueName } from "./support/testData";
 
-test.describe("Dish form UI system tests", () => {
-  /**
-   * Equivalence partitioning:
-   * - valid dish payload should be saved
-   * - required ingredient class is represented by one selected product
-   */
-  test("creates dish for valid equivalence class", async ({ page, productFormPage, dishFormPage }) => {
+test.describe("Системные тесты формы блюда", () => {
+  test("Создание блюда с корректными данными", async ({ page, productFormPage, dishFormPage, dishListPage }) => {
     const ingredientName = uniqueName("ingredient");
     const dishName = uniqueName("valid-dish");
     await productFormPage.createProductViaUi({ name: ingredientName });
@@ -17,36 +11,30 @@ test.describe("Dish form UI system tests", () => {
     await dishFormPage.createDishViaUi({ name: dishName, ingredientName });
 
     await expect(page).toHaveURL(/\/dishes$/);
-    await page.locator(qaSelectors.dishList.searchInput).fill(dishName);
-    await expect(page.locator(qaSelectors.dishList.itemLink, { hasText: dishName })).toBeVisible();
+    await dishListPage.searchByName(dishName);
+    await expect(dishListPage.itemLinkByName(dishName)).toBeVisible();
   });
 
-  /**
-   * Boundary value analysis for name.
-   */
-  test("rejects dish name with length 1", async ({ productFormPage, dishFormPage, page }) => {
+  test("Ошибка при названии длиной 1 символ", async ({ productFormPage, dishFormPage, page }) => {
     const ingredientName = uniqueName("ingredient");
     await productFormPage.createProductViaUi({ name: ingredientName });
     await expect(page).toHaveURL(/\/products$/);
 
     await dishFormPage.openNew();
-    await dishFormPage.fillBaseDish("a");
+    await dishFormPage.fillBaseDish("a ");
     await dishFormPage.selectIngredientByName(ingredientName);
     await dishFormPage.submit();
 
     await expect(dishFormPage.errorMessage).toContainText("Название не короче 2 символов");
   });
 
-  /**
-   * Parameterized boundary tests for B+Ж+У vs portion grams.
-   */
   const macroBoundaryCases = [
-    { title: "accepts BJU sum exactly equal to portion", portion: 60, bju: [20, 20, 20], expectsError: false },
-    { title: "rejects BJU sum above portion", portion: 60, bju: [20, 20, 20.1], expectsError: true },
+    { title: "Сохранение при БЖУ равном размеру порции", portion: 60, bju: [20, 20, 20], expectsError: false },
+    { title: "Ошибка при БЖУ выше размера порции", portion: 60, bju: [20, 20, 20.1], expectsError: true },
   ] as const;
 
   for (const c of macroBoundaryCases) {
-    test(c.title, async ({ page, productFormPage, dishFormPage }) => {
+    test(c.title, async ({ page, productFormPage, dishFormPage, dishListPage }) => {
       const ingredientName = uniqueName("ingredient");
       const dishName = uniqueName("boundary-dish");
       await productFormPage.createProductViaUi({ name: ingredientName });
@@ -56,7 +44,7 @@ test.describe("Dish form UI system tests", () => {
       await dishFormPage.fillBaseDish(dishName);
       await dishFormPage.selectIngredientByName(ingredientName);
       await dishFormPage.portionSizeInput.fill(String(c.portion));
-      await dishFormPage.setMacros(c.bju[0], c.bju[1], c.bju[2]);
+      await dishFormPage.setBju(c.bju[0], c.bju[1], c.bju[2]);
       await dishFormPage.submit();
 
       if (c.expectsError) {
@@ -66,12 +54,12 @@ test.describe("Dish form UI system tests", () => {
         await expect(page).toHaveURL(/\/dishes\/new$/);
       } else {
         await expect(page).toHaveURL(/\/dishes$/);
-        await expect(page.locator(qaSelectors.dishList.itemLink, { hasText: dishName })).toBeVisible();
+        await expect(dishListPage.itemLinkByName(dishName)).toBeVisible();
       }
     });
   }
 
-  test("removes macro from dish name and saves mapped category", async ({ page, productFormPage, dishFormPage }) => {
+  test("Удаление макроса из названия при сохранении", async ({ page, productFormPage, dishFormPage, dishListPage }) => {
     const ingredient = uniqueName("ingredient");
     await productFormPage.createProductViaUi({ name: ingredient });
     await expect(page).toHaveURL(/\/products$/);
@@ -80,12 +68,12 @@ test.describe("Dish form UI system tests", () => {
     await dishFormPage.createDishViaUi({ name: rawName, ingredientName: ingredient });
     await expect(page).toHaveURL(/\/dishes$/);
 
-    await page.locator(qaSelectors.dishList.searchInput).fill("salad");
-    const savedNameLink = page.locator(qaSelectors.dishList.itemLink).first();
+    await dishListPage.searchByName("salad");
+    const savedNameLink = dishListPage.itemLinkByName("salad");
     await expect(savedNameLink).not.toContainText("!десерт");
   });
 
-  test("filters dishes by search and category", async ({ page, productFormPage, dishFormPage }) => {
+  test("Фильтрация блюд по поиску и категории", async ({ page, productFormPage, dishFormPage, dishListPage }) => {
     const ingredientA = uniqueName("ing-a");
     const ingredientB = uniqueName("ing-b");
     const veganDish = uniqueName("салат");
@@ -109,18 +97,18 @@ test.describe("Dish form UI system tests", () => {
     await dishFormPage.submit();
     await expect(page).toHaveURL(/\/dishes$/);
 
-    await page.goto("/dishes");
-    await page.locator(qaSelectors.dishList.searchInput).fill("сал");
-    await expect(page.locator(qaSelectors.dishList.itemLink, { hasText: veganDish })).toBeVisible();
-    await expect(page.locator(qaSelectors.dishList.itemLink, { hasText: nonVeganDish })).toHaveCount(0);
+    await dishListPage.open();
+    await dishListPage.searchByName("сал");
+    await expect(dishListPage.itemLinkByName(veganDish)).toBeVisible();
+    await expect(dishListPage.itemLinkByName(nonVeganDish)).toHaveCount(0);
 
-    await page.locator(qaSelectors.dishList.searchInput).fill("");
-    await page.locator(qaSelectors.dishList.categorySelect).selectOption("SOUP");
-    await expect(page.locator(qaSelectors.dishList.itemLink, { hasText: nonVeganDish })).toBeVisible();
-    await expect(page.locator(qaSelectors.dishList.itemLink, { hasText: veganDish })).toHaveCount(0);
+    await dishListPage.searchByName("");
+    await dishListPage.categorySelect.selectOption("SOUP");
+    await expect(dishListPage.itemLinkByName(nonVeganDish)).toBeVisible();
+    await expect(dishListPage.itemLinkByName(veganDish)).toHaveCount(0);
   });
 
-  test("updates existing dish", async ({ page, productFormPage, dishFormPage }) => {
+  test("Редактирование существующего блюда", async ({ page, productFormPage, dishFormPage, dishListPage, dishCardPage }) => {
     const ingredient = uniqueName("ingredient");
     const created = uniqueName("dish-old");
     const updatedName = uniqueName("dish-new");
@@ -129,18 +117,19 @@ test.describe("Dish form UI system tests", () => {
     await dishFormPage.createDishViaUi({ name: created, ingredientName: ingredient });
     await expect(page).toHaveURL(/\/dishes$/);
 
-    await page.goto("/dishes");
-    await page.locator(qaSelectors.dishList.searchInput).fill(created);
-    const row = page.locator("tr", { hasText: created }).first();
-    await row.locator(qaSelectors.dishList.editLink).click();
+    await dishListPage.open();
+    await dishListPage.searchByName(created);
+    await dishListPage.openEditByName(created);
     await dishFormPage.nameInput.fill(updatedName);
     await dishFormPage.submit();
     await expect(page).toHaveURL(/\/dishes$/);
-    await page.locator(qaSelectors.dishList.searchInput).fill(updatedName);
-    await expect(page.locator(qaSelectors.dishList.itemLink, { hasText: updatedName })).toBeVisible();
+    await dishListPage.searchByName(updatedName);
+    await expect(dishListPage.itemLinkByName(updatedName)).toBeVisible();
+    await dishListPage.itemLinkByName(updatedName).click();
+    await expect(dishCardPage.title).toContainText(updatedName);
   });
 
-  test("deletes existing dish", async ({ page, productFormPage, dishFormPage }) => {
+  test("Удаление существующего блюда", async ({ page, productFormPage, dishFormPage, dishListPage }) => {
     const ingredient = uniqueName("ingredient");
     const created = uniqueName("dish-delete");
     await productFormPage.createProductViaUi({ name: ingredient });
@@ -148,13 +137,12 @@ test.describe("Dish form UI system tests", () => {
     await dishFormPage.createDishViaUi({ name: created, ingredientName: ingredient });
     await expect(page).toHaveURL(/\/dishes$/);
 
-    await page.goto("/dishes");
-    await page.locator(qaSelectors.dishList.searchInput).fill(created);
-    const row = page.locator("tr", { hasText: created }).first();
-    await row.locator(qaSelectors.dishList.editLink).click();
+    await dishListPage.open();
+    await dishListPage.searchByName(created);
+    await dishListPage.openEditByName(created);
     await dishFormPage.deleteButton.click();
     await expect(page).toHaveURL(/\/dishes$/);
-    await page.locator(qaSelectors.dishList.searchInput).fill(created);
-    await expect(page.locator(qaSelectors.dishList.itemLink, { hasText: created })).toHaveCount(0);
+    await dishListPage.searchByName(created);
+    await expect(dishListPage.itemLinkByName(created)).toHaveCount(0);
   });
 });
