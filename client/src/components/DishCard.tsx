@@ -9,7 +9,7 @@ function formatDate(d: string | null) {
 
 export function DishCard({ dish }: { dish: Dish }) {
   return (
-    <div className="card grid">
+    <div className="card grid" data-testid={qaIds.dishCard.root}>
       <h2 data-testid={qaIds.dishCard.title}>{dish.name}</h2>
 
       <div className="row">

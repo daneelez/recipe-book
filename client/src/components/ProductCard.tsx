@@ -8,7 +8,7 @@ function formatDate(d: string | null) {
 
 export function ProductCard({ product }: { product: Product }) {
   return (
-    <div className="card grid">
+    <div className="card grid" data-testid={qaIds.productCard.root}>
       <h2 data-testid={qaIds.productCard.title}>{product.name}</h2>
 
       <div className="row">

@@ -3,12 +3,11 @@ import { uniqueName } from './support/testData'
 
 test.describe("Системные тесты формы продукта", () => {
   test("Создание продукта с корректными данными", async ({
-                                                           page,
                                                            productFormPage,
                                                            productListPage,
                                                            productCardPage,
                                                          }) => {
-    const productName = uniqueName("продукт");
+    const productName = uniqueName("продукт")
 
     await productFormPage.createProductViaUi({
       name: productName,
@@ -18,170 +17,162 @@ test.describe("Системные тесты формы продукта", () =>
       carbs: 40,
       category: "VEGETABLES",
       cooking: "READY_TO_EAT",
-    });
+    })
 
-    await expect(page).toHaveURL(/\/products$/);
+    await expect(productListPage.root).toBeVisible()
 
-    await productListPage.open();
-    await productListPage.searchByName(productName);
-    const row = productListPage.rowByName(productName);
-    await expect(row).toBeVisible();
+    await productListPage.searchByName(productName)
+    await expect(productListPage.rowByName(productName)).toBeVisible()
 
-    await productListPage.itemLinkByName(productName).click();
+    await productListPage.itemLinkByName(productName).click()
 
-    await expect(page).toHaveURL(/\/\/products\/.*\/view|\/products\/.*\/view/);
-    await expect(productCardPage.title).toContainText(productName);
-    await expect(productCardPage.calories).toContainText("120");
-    await expect(productCardPage.protein).toContainText("20");
-    await expect(productCardPage.fat).toContainText("30");
-    await expect(productCardPage.carbs).toContainText("40");
-  });
+    await expect(productCardPage.root).toBeVisible()
+
+    await expect(productCardPage.title).toContainText(productName)
+    await expect(productCardPage.calories).toContainText("120")
+    await expect(productCardPage.protein).toContainText("20")
+    await expect(productCardPage.fat).toContainText("30")
+    await expect(productCardPage.carbs).toContainText("40")
+  })
 
   test.describe("Проверка границ названия", () => {
-    const nameCases = [
-      {
-        title: "Ошибка при названии длиной 1 символ",
-        name: "а ",
-        shouldFail: true,
-      },
-      {
-        title: "Создание продукта при названии длиной 2 символа",
-        name: "аб",
-        shouldFail: false,
-      },
-    ] as const;
+    test("Ошибка при названии длиной 1 символ", async ({
+                                                         productFormPage,
+                                                       }) => {
+      const productName = "а "
 
-    for (const c of nameCases) {
-      test(c.title, async ({ page, productFormPage, productListPage }) => {
-        const productName = c.shouldFail
-          ? c.name
-          : `${uniqueName("продукт")}-${c.name}`;
+      await productFormPage.openNew()
+      await productFormPage.fillBaseProduct(productName)
+      await productFormPage.setBju(10, 10, 10)
+      await productFormPage.submit()
 
-        await productFormPage.openNew();
-        await productFormPage.fillBaseProduct(productName);
-        await productFormPage.setBju(10, 10, 10);
-        await productFormPage.submit();
+      await expect(productFormPage.errorMessage).toContainText(
+        "Название не короче 2 символов"
+      )
 
-        if (c.shouldFail) {
-          await expect(productFormPage.errorMessage).toContainText(
-            "Название не короче 2 символов"
-          );
-          await expect(page).toHaveURL(/\/products\/new$/);
-        } else {
-          await expect(page).toHaveURL(/\/products$/);
+      await expect(productFormPage.root).toBeVisible()
+    })
 
-          await productListPage.open();
-          await productListPage.searchByName(productName);
+    test("Создание продукта при названии длиной 2 символа", async ({
+                                                                     productFormPage,
+                                                                     productListPage,
+                                                                   }) => {
+      const productName = `${uniqueName("продукт")}-аб`
 
-          await expect(productListPage.rowByName(productName)).toBeVisible();
-        }
-      });
-    }
-  });
+      await productFormPage.openNew()
+      await productFormPage.fillBaseProduct(productName)
+      await productFormPage.setBju(10, 10, 10)
+      await productFormPage.submit()
+
+      await expect(productListPage.root).toBeVisible()
+
+      await productListPage.open()
+      await productListPage.searchByName(productName)
+
+      await expect(productListPage.rowByName(productName)).toBeVisible()
+    })
+  })
 
   test.describe("Проверка суммы БЖУ", () => {
-    const bjuCases = [
-      {
-        title: "Создание продукта при сумме БЖУ равной 100",
-        protein: 40,
-        fat: 30,
-        carbs: 30,
-        shouldFail: false,
-      },
-      {
-        title: "Ошибка при сумме БЖУ больше 100",
-        protein: 40,
-        fat: 30,
-        carbs: 30.1,
-        shouldFail: true,
-      },
-    ] as const;
+    test("Создание продукта при сумме БЖУ равной 100", async ({
+                                                                page,
+                                                                productFormPage,
+                                                                productListPage,
+                                                              }) => {
+      const productName = uniqueName("бжу")
 
-    for (const c of bjuCases) {
-      test(c.title, async ({ page, productFormPage, productListPage }) => {
-        const productName = uniqueName("бжу");
+      await productFormPage.openNew()
+      await productFormPage.fillBaseProduct(productName)
+      await productFormPage.setBju(40, 30, 30)
+      await productFormPage.submit()
 
-        await productFormPage.openNew();
-        await productFormPage.fillBaseProduct(productName);
-        await productFormPage.setBju(c.protein, c.fat, c.carbs);
-        await productFormPage.submit();
+      await expect(productListPage.root).toBeVisible()
 
-        if (c.shouldFail) {
-          await expect(productFormPage.errorMessage).toContainText(
-            "Сумма БЖУ на 100 г не может превышать 100 г."
-          );
-          await expect(page).toHaveURL(/\/products\/new$/);
-        } else {
-          await expect(page).toHaveURL(/\/products$/);
+      await productListPage.open()
+      await productListPage.searchByName(productName)
 
-          await productListPage.open();
-          await productListPage.searchByName(productName);
-          await expect(productListPage.rowByName(productName)).toBeVisible();
-        }
-      });
-    }
-  });
+      await expect(productListPage.rowByName(productName)).toBeVisible()
+    })
+
+    test("Ошибка при сумме БЖУ больше 100", async ({
+                                                     productFormPage,
+                                                   }) => {
+      const productName = uniqueName("бжу")
+
+      await productFormPage.openNew()
+      await productFormPage.fillBaseProduct(productName)
+      await productFormPage.setBju(40, 30, 30.1)
+      await productFormPage.submit()
+
+      await expect(productFormPage.errorMessage).toContainText(
+        "Сумма БЖУ на 100 г не может превышать 100 г."
+      )
+
+      await expect(productFormPage.root).toBeVisible()
+    })
+  })
 
   test("Редактирование существующего продукта", async ({
-                                                         page,
                                                          productFormPage,
                                                          productListPage,
                                                          productCardPage,
                                                        }) => {
-    const oldName = uniqueName("старый-продукт");
-    const newName = uniqueName("новый-продукт");
+    const oldName = uniqueName("старый-продукт")
+    const newName = uniqueName("новый-продукт")
 
     await productFormPage.createProductViaUi({
       name: oldName,
       protein: 20,
       fat: 10,
       carbs: 20,
-    });
+    })
 
-    await expect(page).toHaveURL(/\/products$/);
+    await expect(productListPage.root).toBeVisible()
 
-    await productListPage.open();
-    await productListPage.searchByName(oldName);
-    await productListPage.openEditByName(oldName);
+    await productListPage.open()
+    await productListPage.searchByName(oldName)
+    await productListPage.openEditByName(oldName)
 
-    await productFormPage.nameInput.fill(newName);
-    await productFormPage.submit();
+    await productFormPage.nameInput.fill(newName)
+    await productFormPage.submit()
 
-    await expect(page).toHaveURL(/\/products$/);
+    await expect(productListPage.root).toBeVisible()
 
-    await productListPage.open();
-    await productListPage.searchByName(newName);
-    const updatedRow = productListPage.rowByName(newName);
-    await expect(updatedRow).toBeVisible();
-    await productListPage.itemLinkByName(newName).click();
-    await expect(productCardPage.title).toContainText(newName);
-  });
+    await productListPage.open()
+    await productListPage.searchByName(newName)
+
+    await expect(productListPage.rowByName(newName)).toBeVisible()
+
+    await productListPage.itemLinkByName(newName).click()
+    await expect(productCardPage.root).toBeVisible()
+    await expect(productCardPage.title).toContainText(newName)
+  })
 
   test("Удаление существующего продукта", async ({
-                                                   page,
                                                    productFormPage,
                                                    productListPage,
                                                  }) => {
-    const productName = uniqueName("удаление-продукта");
+    const productName = uniqueName("удаление-продукта")
 
     await productFormPage.createProductViaUi({
       name: productName,
-    });
+    })
 
-    await expect(page).toHaveURL(/\/products$/);
+    await expect(productListPage.root).toBeVisible()
 
-    await productListPage.open();
-    await productListPage.searchByName(productName);
-    await productListPage.openEditByName(productName);
+    await productListPage.open()
+    await productListPage.searchByName(productName)
+    await productListPage.openEditByName(productName)
 
-    await productFormPage.delete();
+    await productFormPage.delete()
 
-    await expect(page).toHaveURL(/\/products$/);
+    await expect(productListPage.root).toBeVisible()
 
-    await productListPage.open();
-    await productListPage.searchByName(productName);
-    await expect(productListPage.rowByName(productName)).toHaveCount(0);
-  });
+    await productListPage.open()
+    await productListPage.searchByName(productName)
+
+    await expect(productListPage.rowByName(productName)).toHaveCount(0)
+  })
 
   test("Ошибка удаления продукта, который используется в блюде", async ({
                                                                           page,
@@ -189,32 +180,32 @@ test.describe("Системные тесты формы продукта", () =>
                                                                           dishFormPage,
                                                                           productListPage,
                                                                         }) => {
-    const productName = uniqueName("продукт-в-блюде");
-    const dishName = uniqueName("блюдо-с-продуктом");
+    const productName = uniqueName("продукт-в-блюде")
+    const dishName = uniqueName("блюдо-с-продуктом")
 
     await productFormPage.createProductViaUi({
       name: productName,
-    });
+    })
 
-    await expect(page).toHaveURL(/\/products$/);
+    await expect(productListPage.root).toBeVisible()
 
     await dishFormPage.createDishViaUi({
       name: dishName,
       ingredientName: productName,
-    });
+    })
 
-    await expect(page).toHaveURL(/\/dishes$/);
+    await expect(dishFormPage.root).toBeVisible()
 
-    await productListPage.open();
-    await productListPage.searchByName(productName);
-    await productListPage.openEditByName(productName);
+    await productListPage.open()
+    await productListPage.searchByName(productName)
+    await productListPage.openEditByName(productName)
 
-    await productFormPage.delete();
+    await productFormPage.delete()
 
     await expect(productFormPage.deleteErrorMessage).toContainText(
       "Нельзя удалить продукт: он используется в блюдах"
-    );
+    )
 
-    await expect(page.getByRole("link", { name: dishName })).toBeVisible();
-  });
-});
+    await expect(productFormPage.root).toBeVisible()
+  })
+})

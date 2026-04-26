@@ -4,6 +4,7 @@ import { qaSelectors } from '../support/selectors'
 export class ProductFormPage {
   readonly page: Page;
 
+  readonly root: Locator;
   readonly nameInput: Locator;
   readonly caloriesInput: Locator;
   readonly proteinInput: Locator;
@@ -19,6 +20,7 @@ export class ProductFormPage {
   constructor(page: Page) {
     this.page = page;
 
+    this.root = page.locator(qaSelectors.productForm.root);
     this.nameInput = page.locator(qaSelectors.productForm.nameInput);
     this.caloriesInput = page.locator(qaSelectors.productForm.caloriesInput);
     this.proteinInput = page.locator(qaSelectors.productForm.proteinInput);

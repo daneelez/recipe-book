@@ -1,5 +1,6 @@
 export const qaIds = {
   productForm: {
+    root: 'product-form',
     nameInput: "product-name-input",
     caloriesInput: "product-calories-input",
     proteinInput: "product-protein-input",
@@ -13,6 +14,7 @@ export const qaIds = {
     deleteError: "product-delete-error",
   },
   productCard: {
+    root: 'product-card',
     title: "product-card-title",
     calories: "product-card-calories",
     protein: "product-card-protein",
@@ -27,6 +29,7 @@ export const qaIds = {
     id: "product-card-id",
   },
   dishForm: {
+    root: 'dish-form',
     nameInput: "dish-name-input",
     portionSizeInput: "dish-portion-size-input",
     caloriesInput: "dish-calories-input",
@@ -42,6 +45,7 @@ export const qaIds = {
     error: "dish-form-error",
   },
   dishCard: {
+    root: 'dish-card',
     title: "dish-card-title",
     calories: "dish-card-calories",
     protein: "dish-card-protein",
@@ -56,6 +60,7 @@ export const qaIds = {
     id: "dish-card-id",
   },
   productList: {
+    root: 'product-list',
     createButton: "product-list-create-button",
     searchInput: "product-list-search-input",
     categorySelect: "product-list-category-select",
@@ -69,6 +74,7 @@ export const qaIds = {
     editLink: "product-list-edit-link",
   },
   dishList: {
+    root: 'dish-list',
     createButton: "dish-list-create-button",
     searchInput: "dish-list-search-input",
     categorySelect: "dish-list-category-select",

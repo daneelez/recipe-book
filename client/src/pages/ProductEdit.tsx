@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { deleteProduct, fetchProduct, saveProduct, uploadPhotos } from "../api";
-import type { FlagKey, ProductCategory, CookingNeed } from "../types";
-import { Select } from "../components/Select";
-import { qaIds } from "../lib/qaSelectors";
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { deleteProduct, fetchProduct, saveProduct, uploadPhotos } from '../api'
+import type { CookingNeed, FlagKey, ProductCategory } from '../types'
+import { Select } from '../components/Select'
+import { qaIds } from '../lib/qaSelectors'
 
 const PRODUCT_CATEGORIES: { value: ProductCategory; label: string }[] = [
   { value: "FROZEN", label: "Замороженный" },
@@ -148,7 +148,7 @@ export function ProductEdit() {
   if (loading) return <p className="muted">Загрузка…</p>;
 
   return (
-    <form className="grid" onSubmit={onSubmit}>
+    <form className="grid" onSubmit={onSubmit} data-qa-type={qaIds.productForm.root}>
       <div className="row" style={{ justifyContent: "space-between" }}>
         <h2 style={{ margin: 0 }}>{id ? "Редактирование продукта" : "Новый продукт"}</h2>
         <Link to={returnTo ?? "/products"}>

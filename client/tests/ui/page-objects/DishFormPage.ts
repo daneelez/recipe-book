@@ -4,6 +4,7 @@ import { qaSelectors } from '../support/selectors'
 export class DishFormPage {
   readonly page: Page;
 
+  readonly root: Locator;
   readonly nameInput: Locator;
   readonly portionSizeInput: Locator;
   readonly caloriesInput: Locator;
@@ -22,6 +23,7 @@ export class DishFormPage {
     this.page = page;
 
     this.nameInput = page.locator(qaSelectors.dishForm.nameInput);
+    this.root = page.locator(qaSelectors.dishForm.root);
     this.portionSizeInput = page.locator(qaSelectors.dishForm.portionSizeInput);
     this.caloriesInput = page.locator(qaSelectors.dishForm.caloriesInput);
     this.proteinInput = page.locator(qaSelectors.dishForm.proteinInput);

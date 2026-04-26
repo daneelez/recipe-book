@@ -65,7 +65,7 @@ export function ProductList() {
   }, [params]);
 
   return (
-    <div className="grid">
+    <div className="grid" data-qa-type={qaIds.productList.root}>
       <div className="row" style={{ justifyContent: "space-between" }}>
         <h2 style={{ margin: 0 }}>Продукты</h2>
         <Link to="/products/new">

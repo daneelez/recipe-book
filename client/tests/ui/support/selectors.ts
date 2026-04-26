@@ -1,7 +1,8 @@
-import { qaIds } from "../../../src/lib/qaSelectors";
+import { qaIds } from '../../../src/lib/qaSelectors'
 
 export const qaSelectors = {
   productForm: {
+    root: `[data-qa-type="${qaIds.productForm.root}"]`,
     nameInput: `[data-qa-type="${qaIds.productForm.nameInput}"]`,
     caloriesInput: `[data-qa-type="${qaIds.productForm.caloriesInput}"]`,
     proteinInput: `[data-qa-type="${qaIds.productForm.proteinInput}"]`,
@@ -15,6 +16,7 @@ export const qaSelectors = {
     deleteError: `[data-qa-type="${qaIds.productForm.deleteError}"]`,
   },
   dishForm: {
+    root: `[data-qa-type="${qaIds.dishForm.root}"]`,
     nameInput: `[data-qa-type="${qaIds.dishForm.nameInput}"]`,
     portionSizeInput: `[data-qa-type="${qaIds.dishForm.portionSizeInput}"]`,
     caloriesInput: `[data-qa-type="${qaIds.dishForm.caloriesInput}"]`,
@@ -30,6 +32,7 @@ export const qaSelectors = {
     error: `[data-qa-type="${qaIds.dishForm.error}"]`,
   },
   productList: {
+    root: `[data-qa-type="${qaIds.productList.root}"]`,
     createButton: `[data-qa-type="${qaIds.productList.createButton}"]`,
     searchInput: `[data-qa-type="${qaIds.productList.searchInput}"]`,
     categorySelect: `[data-qa-type="${qaIds.productList.categorySelect}"]`,
@@ -41,6 +44,7 @@ export const qaSelectors = {
     editLink: `[data-qa-type="${qaIds.productList.editLink}"]`,
   },
   dishList: {
+    root: `[data-qa-type="${qaIds.dishList.root}"]`,
     createButton: `[data-qa-type="${qaIds.dishList.createButton}"]`,
     searchInput: `[data-qa-type="${qaIds.dishList.searchInput}"]`,
     categorySelect: `[data-qa-type="${qaIds.dishList.categorySelect}"]`,

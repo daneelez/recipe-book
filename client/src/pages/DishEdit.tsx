@@ -1,11 +1,21 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { deleteDish, fetchDish, fetchProducts, previewDishKbju, saveDish, uploadPhotos } from "../api";
-import { extractDishMacro } from "../lib/macros";
-import { allowedDishFlagsFromProducts, sanitizeDishFlags } from "../lib/dishFlags";
-import { qaIds } from "../lib/qaSelectors";
-import type { DishCategory, FlagKey, Product } from "../types";
-import { Select } from "../components/Select";
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import {
+  deleteDish,
+  fetchDish,
+  fetchProducts,
+  previewDishKbju,
+  saveDish,
+  uploadPhotos
+} from '../api'
+import { extractDishMacro } from '../lib/macros'
+import {
+  allowedDishFlagsFromProducts,
+  sanitizeDishFlags
+} from '../lib/dishFlags'
+import { qaIds } from '../lib/qaSelectors'
+import type { DishCategory, FlagKey, Product } from '../types'
+import { Select } from '../components/Select'
 
 const DISH_CATS: { value: DishCategory; label: string }[] = [
   { value: "DESSERT", label: "Десерт" },
@@ -218,7 +228,7 @@ export function DishEdit() {
   if (loading) return <p className="muted">Загрузка…</p>;
 
   return (
-    <form className="grid" onSubmit={onSubmit}>
+    <form className="grid" onSubmit={onSubmit} data-qa-type={qaIds.dishForm.root}>
       <div className="row" style={{ justifyContent: "space-between" }}>
         <h2 style={{ margin: 0 }}>{id ? "Редактирование блюда" : "Новое блюдо"}</h2>
         <Link to="/dishes">

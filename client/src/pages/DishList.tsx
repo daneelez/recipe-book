@@ -51,7 +51,7 @@ export function DishList() {
   }, [params]);
 
   return (
-    <div className="grid">
+    <div className="grid" data-qa-type={qaIds.dishList.root}>
       <div className="row" style={{ justifyContent: "space-between" }}>
         <h2 style={{ margin: 0 }}>Блюда</h2>
         <Link to="/dishes/new">

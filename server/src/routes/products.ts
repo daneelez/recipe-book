@@ -1,15 +1,14 @@
-import { Router } from "express";
-import type { Prisma } from "@prisma/client";
-import { prisma } from "../prisma.js";
-import { parseFlagsJson } from "../lib/flags.js";
-import { serializeFlags } from "../lib/flags.js";
-import type { FlagKey } from "../lib/enums.js";
-import { productToDto } from "../lib/serialize.js";
+import { Router } from 'express'
+import type { Prisma } from '@prisma/client'
+import { prisma } from '../prisma.js'
+import { parseFlagsJson, serializeFlags } from '../lib/flags.js'
+import type { FlagKey } from '../lib/enums.js'
+import { productToDto } from '../lib/serialize.js'
 import {
   assertProductBjuSum,
   productCreateSchema,
   ValidationError,
-} from "../lib/validation.js";
+} from '../lib/validation.js'
 
 export const productsRouter = Router();
 
@@ -168,6 +167,16 @@ productsRouter.delete("/:id", async (req, res, next) => {
       res.status(404).json({ error: "Продукт не найден" });
       return;
     }
+    next(e);
+  }
+});
+
+productsRouter.get("/test/forTestsOnly", async (req, res, next) => {
+  try {
+    await prisma.dishIngredient.deleteMany();
+    await prisma.dish.deleteMany();
+    await prisma.product.deleteMany();
+    } catch (e: unknown) {
     next(e);
   }
 });

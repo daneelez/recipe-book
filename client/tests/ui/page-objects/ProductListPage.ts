@@ -1,8 +1,9 @@
-import type { Locator, Page } from "@playwright/test";
-import { qaSelectors } from "../support/selectors";
+import type { Locator, Page } from '@playwright/test'
+import { qaSelectors } from '../support/selectors'
 
 export class ProductListPage {
   readonly page: Page;
+  readonly root: Locator;
   readonly searchInput: Locator;
   readonly createButton: Locator;
   readonly sortSelect: Locator;
@@ -12,6 +13,7 @@ export class ProductListPage {
 
   constructor(page: Page) {
     this.page = page;
+    this.root = page.locator(qaSelectors.productList.root);
     this.searchInput = page.locator(qaSelectors.productList.searchInput);
     this.createButton = page.locator(qaSelectors.productList.createButton);
     this.sortSelect = page.locator(qaSelectors.productList.sortSelect);

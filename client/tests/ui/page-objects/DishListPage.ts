@@ -1,14 +1,16 @@
-import type { Locator, Page } from "@playwright/test";
-import { qaSelectors } from "../support/selectors";
+import type { Locator, Page } from '@playwright/test'
+import { qaSelectors } from '../support/selectors'
 
 export class DishListPage {
   readonly page: Page;
+  readonly root: Locator;
   readonly searchInput: Locator;
   readonly categorySelect: Locator;
   readonly createButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
+    this.root = page.locator(qaSelectors.dishList.root);
     this.searchInput = page.locator(qaSelectors.dishList.searchInput);
     this.categorySelect = page.locator(qaSelectors.dishList.categorySelect);
     this.createButton = page.locator(qaSelectors.dishList.createButton);
