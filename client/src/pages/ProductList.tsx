@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchProducts } from '../api'
+import { qaIds } from '../lib/qaSelectors'
 import type { CookingNeed, Product, ProductCategory } from '../types'
 import { Select } from '../components/Select'
 
@@ -68,7 +69,7 @@ export function ProductList() {
       <div className="row" style={{ justifyContent: "space-between" }}>
         <h2 style={{ margin: 0 }}>Продукты</h2>
         <Link to="/products/new">
-          <button type="button">Новый продукт</button>
+          <button data-qa-type={qaIds.productList.createButton} type="button">Новый продукт</button>
         </Link>
       </div>
 
@@ -76,11 +77,16 @@ export function ProductList() {
         <div className="grid cols-2">
           <div>
             <label>Поиск по названию</label>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Подстрока…" />
+            <input
+              data-qa-type={qaIds.productList.searchInput}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Подстрока…"
+            />
           </div>
           <div>
             <label>Категория</label>
-            <Select value={category} onChange={(e) => setCategory(e.target.value)}>
+            <Select data-qa-type={qaIds.productList.categorySelect} value={category} onChange={(e) => setCategory(e.target.value)}>
               <option value="">Все</option>
               {PRODUCT_CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>
@@ -91,7 +97,7 @@ export function ProductList() {
           </div>
           <div>
             <label>Готовка</label>
-            <Select value={cookingNeed} onChange={(e) => setCookingNeed(e.target.value)}>
+            <Select data-qa-type={qaIds.productList.cookingSelect} value={cookingNeed} onChange={(e) => setCookingNeed(e.target.value)}>
               <option value="">Все</option>
               {COOKING.map((c) => (
                 <option key={c.value} value={c.value}>
@@ -104,19 +110,19 @@ export function ProductList() {
             <label>Флаги</label>
             <div className="row" style={{ marginTop: "0.35rem" }}>
               <label className="row" style={{ cursor: "pointer" }}>
-                <input type="checkbox" checked={vegan} onChange={(e) => setVegan(e.target.checked)} /> Веган
+                <input data-qa-type={qaIds.productList.veganCheckbox} type="checkbox" checked={vegan} onChange={(e) => setVegan(e.target.checked)} /> Веган
               </label>
               <label className="row" style={{ cursor: "pointer" }}>
-                <input type="checkbox" checked={glutenFree} onChange={(e) => setGlutenFree(e.target.checked)} /> Без глютена
+                <input data-qa-type={qaIds.productList.glutenFreeCheckbox} type="checkbox" checked={glutenFree} onChange={(e) => setGlutenFree(e.target.checked)} /> Без глютена
               </label>
               <label className="row" style={{ cursor: "pointer" }}>
-                <input type="checkbox" checked={sugarFree} onChange={(e) => setSugarFree(e.target.checked)} /> Без сахара
+                <input data-qa-type={qaIds.productList.sugarFreeCheckbox} type="checkbox" checked={sugarFree} onChange={(e) => setSugarFree(e.target.checked)} /> Без сахара
               </label>
             </div>
           </div>
           <div>
             <label>Сортировка</label>
-            <Select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
+            <Select data-qa-type={qaIds.productList.sortSelect} value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
               <option value="name">Название</option>
               <option value="calories">Калорийность</option>
               <option value="protein">Белки</option>
@@ -126,7 +132,7 @@ export function ProductList() {
           </div>
           <div>
             <label>Порядок</label>
-            <Select value={order} onChange={(e) => setOrder(e.target.value as "asc" | "desc")}>
+            <Select data-qa-type={qaIds.productList.orderSelect} value={order} onChange={(e) => setOrder(e.target.value as "asc" | "desc")}>
               <option value="asc">По возрастанию</option>
               <option value="desc">По убыванию</option>
             </Select>
@@ -159,10 +165,12 @@ export function ProductList() {
                   )}
                 </td>
                 <td>
-                  <Link to={`/products/${p.id}/view`}>{p.name}</Link>
+                  <Link data-qa-type={qaIds.productList.itemLink} to={`/products/${p.id}/view`}>
+                    {p.name}
+                  </Link>
                 </td>
                 <td>
-                  <Link to={`/products/${p.id}`}>Изменить</Link>
+                  <Link data-qa-type={qaIds.productList.editLink} to={`/products/${p.id}`}>Изменить</Link>
                 </td>
                 <td>{p.categoryLabel}</td>
                 <td>{p.caloriesPer100g.toFixed(1)}</td>

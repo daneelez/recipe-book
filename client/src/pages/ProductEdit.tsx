@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { deleteProduct, fetchProduct, saveProduct, uploadPhotos } from "../api";
 import type { FlagKey, ProductCategory, CookingNeed } from "../types";
 import { Select } from "../components/Select";
+import { qaIds } from "../lib/qaSelectors";
 
 const PRODUCT_CATEGORIES: { value: ProductCategory; label: string }[] = [
   { value: "FROZEN", label: "Замороженный" },
@@ -163,16 +164,23 @@ export function ProductEdit() {
         </p>
       )}
 
-      {err && <p className="error">{err}</p>}
+      {err && <p className="error" data-qa-type={qaIds.productForm.error}>{err}</p>}
 
       <div className="card grid cols-2">
         <div style={{ gridColumn: "1 / -1" }}>
           <label>Название</label>
-          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required minLength={2} />
+          <input
+            data-qa-type={qaIds.productForm.nameInput}
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+            minLength={2}
+          />
         </div>
         <div>
           <label>Калорийность, ккал / 100 г</label>
           <input
+            data-qa-type={qaIds.productForm.caloriesInput}
             type="number"
             step="0.1"
             min={0}
@@ -184,6 +192,7 @@ export function ProductEdit() {
           <label>Белки / Жиры / Углеводы (г / 100 г)</label>
           <div className="row">
             <input
+              data-qa-type={qaIds.productForm.proteinInput}
               type="number"
               step="0.1"
               min={0}
@@ -192,6 +201,7 @@ export function ProductEdit() {
               onChange={(e) => setForm({ ...form, proteinPer100g: parseFloat(e.target.value) || 0 })}
             />
             <input
+              data-qa-type={qaIds.productForm.fatInput}
               type="number"
               step="0.1"
               min={0}
@@ -200,6 +210,7 @@ export function ProductEdit() {
               onChange={(e) => setForm({ ...form, fatPer100g: parseFloat(e.target.value) || 0 })}
             />
             <input
+              data-qa-type={qaIds.productForm.carbsInput}
               type="number"
               step="0.1"
               min={0}
@@ -214,7 +225,11 @@ export function ProductEdit() {
         </div>
         <div>
           <label>Категория</label>
-          <Select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ProductCategory })}>
+          <Select
+            data-qa-type={qaIds.productForm.categorySelect}
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value as ProductCategory })}
+          >
             {PRODUCT_CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
@@ -224,7 +239,11 @@ export function ProductEdit() {
         </div>
         <div>
           <label>Готовка</label>
-          <Select value={form.cookingNeed} onChange={(e) => setForm({ ...form, cookingNeed: e.target.value as CookingNeed })}>
+          <Select
+            data-qa-type={qaIds.productForm.cookingSelect}
+            value={form.cookingNeed}
+            onChange={(e) => setForm({ ...form, cookingNeed: e.target.value as CookingNeed })}
+          >
             {COOKING.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
@@ -268,16 +287,16 @@ export function ProductEdit() {
       </div>
 
       <div className="row">
-        <button type="submit">Сохранить</button>
+        <button data-qa-type={qaIds.productForm.saveButton} type="submit">Сохранить</button>
         {id && (
-          <button type="button" className="danger" onClick={onDelete}>
+          <button data-qa-type={qaIds.productForm.deleteButton} type="button" className="danger" onClick={onDelete}>
             Удалить
           </button>
         )}
       </div>
 
       {deleteErr && (
-        <div className="card error">
+        <div className="card error" data-qa-type={qaIds.productForm.deleteError}>
           <p>{deleteErr}</p>
           {blockDishes && (
             <ul>

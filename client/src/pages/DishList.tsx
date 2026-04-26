@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchDishes } from '../api'
+import { qaIds } from '../lib/qaSelectors'
 import type { Dish, DishCategory } from '../types'
 import { Select } from '../components/Select'
 
@@ -54,18 +55,23 @@ export function DishList() {
       <div className="row" style={{ justifyContent: "space-between" }}>
         <h2 style={{ margin: 0 }}>Блюда</h2>
         <Link to="/dishes/new">
-          <button type="button">Новое блюдо</button>
+          <button data-qa-type={qaIds.dishList.createButton} type="button">Новое блюдо</button>
         </Link>
       </div>
 
       <div className="card grid cols-2">
         <div>
           <label>Поиск по названию</label>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Подстрока…" />
+          <input
+            data-qa-type={qaIds.dishList.searchInput}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Подстрока…"
+          />
         </div>
         <div>
           <label>Категория блюда</label>
-          <Select value={category} onChange={(e) => setCategory(e.target.value)}>
+          <Select data-qa-type={qaIds.dishList.categorySelect} value={category} onChange={(e) => setCategory(e.target.value)}>
             <option value="">Все</option>
             {DISH_CATS.map((c) => (
               <option key={c.value} value={c.value}>
@@ -78,13 +84,13 @@ export function DishList() {
           <label>Флаги</label>
           <div className="row" style={{ marginTop: "0.35rem" }}>
             <label className="row" style={{ cursor: "pointer" }}>
-              <input type="checkbox" checked={vegan} onChange={(e) => setVegan(e.target.checked)} /> Веган
+              <input data-qa-type={qaIds.dishList.veganCheckbox} type="checkbox" checked={vegan} onChange={(e) => setVegan(e.target.checked)} /> Веган
             </label>
             <label className="row" style={{ cursor: "pointer" }}>
-              <input type="checkbox" checked={glutenFree} onChange={(e) => setGlutenFree(e.target.checked)} /> Без глютена
+              <input data-qa-type={qaIds.dishList.glutenFreeCheckbox} type="checkbox" checked={glutenFree} onChange={(e) => setGlutenFree(e.target.checked)} /> Без глютена
             </label>
             <label className="row" style={{ cursor: "pointer" }}>
-              <input type="checkbox" checked={sugarFree} onChange={(e) => setSugarFree(e.target.checked)} /> Без сахара
+              <input data-qa-type={qaIds.dishList.sugarFreeCheckbox} type="checkbox" checked={sugarFree} onChange={(e) => setSugarFree(e.target.checked)} /> Без сахара
             </label>
           </div>
         </div>
@@ -115,10 +121,12 @@ export function DishList() {
                   )}
                 </td>
                 <td>
-                  <Link to={`/dishes/${d.id}/view`}>{d.name}</Link>
+                  <Link data-qa-type={qaIds.dishList.itemLink} to={`/dishes/${d.id}/view`}>
+                    {d.name}
+                  </Link>
                 </td>
                 <td>
-                  <Link to={`/dishes/${d.id}`}>Изменить</Link>
+                  <Link data-qa-type={qaIds.dishList.editLink} to={`/dishes/${d.id}`}>Изменить</Link>
                 </td>
                 <td>{d.categoryLabel}</td>
                 <td>{d.caloriesPerPortion.toFixed(1)}</td>

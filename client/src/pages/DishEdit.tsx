@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { deleteDish, fetchDish, fetchProducts, previewDishKbju, saveDish, uploadPhotos } from "../api";
 import { extractDishMacro } from "../lib/macros";
 import { allowedDishFlagsFromProducts, sanitizeDishFlags } from "../lib/dishFlags";
+import { qaIds } from "../lib/qaSelectors";
 import type { DishCategory, FlagKey, Product } from "../types";
 import { Select } from "../components/Select";
 
@@ -233,16 +234,16 @@ export function DishEdit() {
         исчезает из поля, категория подставляется в список ниже (её можно сменить вручную до сохранения).
       </p>
 
-      {err && <p className="error">{err}</p>}
+      {err && <p className="error" data-qa-type={qaIds.dishForm.error}>{err}</p>}
 
       <div className="card grid cols-2">
         <div style={{ gridColumn: "1 / -1" }}>
           <label>Название</label>
-          <input value={name} onChange={(e) => onNameChange(e.target.value)} required minLength={2} />
+          <input data-qa-type={qaIds.dishForm.nameInput} value={name} onChange={(e) => onNameChange(e.target.value)} required minLength={2} />
         </div>
         <div>
           <label>Категория блюда</label>
-          <Select value={category} onChange={(e) => setCategory(e.target.value as DishCategory)}>
+          <Select data-qa-type={qaIds.dishForm.categorySelect} value={category} onChange={(e) => setCategory(e.target.value as DishCategory)}>
             {DISH_CATS.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
@@ -253,6 +254,7 @@ export function DishEdit() {
         <div>
           <label>Размер порции, г</label>
           <input
+            data-qa-type={qaIds.dishForm.portionSizeInput}
             type="number"
             step="0.01"
             min={0.1}
@@ -294,6 +296,7 @@ export function DishEdit() {
             <div>
               <label>Калории, ккал/порция</label>
               <input
+                data-qa-type={qaIds.dishForm.caloriesInput}
                 type="number"
                 step="0.01"
                 min={0}
@@ -307,6 +310,7 @@ export function DishEdit() {
             <div>
               <label>Белки, г/порция</label>
               <input
+                data-qa-type={qaIds.dishForm.proteinInput}
                 type="number"
                 step="0.01"
                 min={0}
@@ -320,6 +324,7 @@ export function DishEdit() {
             <div>
               <label>Жиры, г/порция</label>
               <input
+                data-qa-type={qaIds.dishForm.fatInput}
                 type="number"
                 step="0.01"
                 min={0}
@@ -333,6 +338,7 @@ export function DishEdit() {
             <div>
               <label>Углеводы, г/порция</label>
               <input
+                data-qa-type={qaIds.dishForm.carbsInput}
                 type="number"
                 step="0.01"
                 min={0}
@@ -356,7 +362,11 @@ export function DishEdit() {
           {ingredients.map((row, idx) => (
             <div key={idx} className="row" style={{ marginBottom: "0.5rem" }}>
               <div style={{ flex: 2, minWidth: "200px" }}>
-                <Select value={row.productId} onChange={(e) => updateIngredient(idx, { productId: e.target.value })}>
+                <Select
+                  data-qa-type={idx === 0 ? qaIds.dishForm.ingredientProductSelect : undefined}
+                  value={row.productId}
+                  onChange={(e) => updateIngredient(idx, { productId: e.target.value })}
+                >
                   <option value="">— продукт —</option>
                   {catalog.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -366,6 +376,7 @@ export function DishEdit() {
                 </Select>
               </div>
               <input
+                data-qa-type={idx === 0 ? qaIds.dishForm.ingredientGramsInput : undefined}
                 type="number"
                 step="0.01"
                 min={0.1}
@@ -384,6 +395,7 @@ export function DishEdit() {
             </div>
           ))}
           <button
+            data-qa-type={qaIds.dishForm.addIngredientButton}
             type="button"
             className="secondary"
             onClick={() => setIngredients((prev) => [...prev, { productId: "", grams: 100 }])}
@@ -434,9 +446,10 @@ export function DishEdit() {
       </div>
 
       <div className="row">
-        <button type="submit">Сохранить</button>
+        <button data-qa-type={qaIds.dishForm.saveButton} type="submit">Сохранить</button>
         {id && (
           <button
+            data-qa-type={qaIds.dishForm.deleteButton}
             type="button"
             className="danger"
             onClick={async () => {
