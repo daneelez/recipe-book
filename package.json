@@ -9,9 +9,12 @@
     "dev": "concurrently -k \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
     "build": "npm run build --workspace=server && npm run build --workspace=client",
     "test": "npm run test --workspace=server",
-    "db:push": "npm run db:push --workspace=server"
+    "db:push": "npm run db:push --workspace=server",
+    "test:ui": "playwright test",
+    "test:ui:headed": "playwright test --headed"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "concurrently": "^9.1.2"
   }
 }

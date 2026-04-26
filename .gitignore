@@ -6,3 +6,6 @@ uploads
 .DS_Store
 server/coverage
 .idea
+playwright-report
+test-results
+blob-report
