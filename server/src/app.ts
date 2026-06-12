@@ -6,6 +6,7 @@ import multer from "multer";
 import { fileURLToPath } from "url";
 import { productsRouter } from "./routes/products.js";
 import { dishesRouter } from "./routes/dishes.js";
+import { dastLabRouter } from "./security-lab/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
@@ -48,6 +49,10 @@ export function createApp() {
   app.use("/api/dishes", dishesRouter);
 
   app.get("/api/health", (_req, res) => res.json({ ok: true }));
+
+  if (process.env.ENABLE_SECURITY_LAB === "true") {
+    app.use("/api/lab", dastLabRouter);
+  }
 
   app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error(err);

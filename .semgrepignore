@@ -1,0 +1,9 @@
+node_modules/
+dist/
+server/coverage/
+playwright-report/
+test-results/
+security/reports/
+# Исправленные примеры — не должны попадать в отчёт как уязвимости
+server/src/security-lab/sast-triggers-fixed.ts
+client/src/security-lab/SastTriggerFixed.tsx

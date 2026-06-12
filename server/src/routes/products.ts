@@ -171,12 +171,19 @@ productsRouter.delete("/:id", async (req, res, next) => {
   }
 });
 
+// Тестовый эндпоинт очистки БД — доступен только при ENABLE_TEST_ROUTES=true (CI/локальные тесты).
+// DAST-сканер фиксирует отсутствие аутентификации, если маршрут включён без защиты.
 productsRouter.get("/test/forTestsOnly", async (req, res, next) => {
+  if (process.env.ENABLE_TEST_ROUTES !== "true") {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
   try {
     await prisma.dishIngredient.deleteMany();
     await prisma.dish.deleteMany();
     await prisma.product.deleteMany();
-    } catch (e: unknown) {
+    res.status(204).send();
+  } catch (e: unknown) {
     next(e);
   }
 });

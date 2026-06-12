@@ -1,0 +1,172 @@
+name: Security Analysis
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+env:
+  NODE_VERSION: "22"
+  DATABASE_URL: "file:./ci-security.db"
+
+jobs:
+  # ─── SAST: Semgrep ───────────────────────────────────────────────
+  sast-semgrep:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        continue-on-error: true
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/owasp-top-ten
+            p/nodejs
+            p/typescript
+            security/semgrep/custom-rules.yml
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: Generate Semgrep JSON report
+        run: |
+          mkdir -p security/reports
+          docker run --rm -v "${{ github.workspace }}:/src" \
+            returntocorp/semgrep semgrep scan \
+              --config p/security-audit \
+              --config p/owasp-top-ten \
+              --config p/nodejs \
+              --config p/typescript \
+              --config /src/security/semgrep/custom-rules.yml \
+              --json --output /src/security/reports/semgrep-report.json \
+              /src || true
+
+      - name: Upload SAST report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sast-semgrep-report
+          path: security/reports/semgrep-report.json
+          if-no-files-found: warn
+
+  # ─── SCA: OWASP Dependency-Check + npm audit ───────────────────
+  sca-dependencies:
+    name: SCA (Dependency Check)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: recipe-book
+          path: .
+          format: ALL
+          out: security/reports/dependency-check
+          args: >
+            --enableExperimental
+            --nvdApiDelay 6000
+            --suppression security/dependency-check-suppressions.xml
+
+      - name: npm audit (JSON report)
+        run: |
+          mkdir -p security/reports
+          npm audit --json > security/reports/npm-audit.json || true
+          npm audit > security/reports/npm-audit.txt || true
+
+      - name: Upload SCA reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sca-reports
+          path: security/reports/
+          if-no-files-found: warn
+
+  # ─── DAST: OWASP ZAP baseline scan ─────────────────────────────
+  dast-zap:
+    name: DAST (OWASP ZAP)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare database
+        working-directory: server
+        run: |
+          npx prisma generate
+          npx prisma db push --skip-generate
+
+      - name: Build server
+        run: npm run build --workspace=server
+
+      - name: Start application
+        env:
+          ENABLE_SECURITY_LAB: "true"
+          ENABLE_TEST_ROUTES: "true"
+          PORT: "3000"
+        run: |
+          npm run start --workspace=server &
+          echo "Waiting for server..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/api/health; then
+              echo "Server is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Server failed to start"
+          exit 1
+
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: http://localhost:3000
+          rules_file_name: security/zap/rules.tsv
+          cmd_options: >-
+            -a
+            -j
+            -m 3
+            -z "-config spider.maxDuration=1"
+
+      - name: Collect ZAP reports
+        if: always()
+        run: |
+          mkdir -p security/reports/zap
+          cp -r report_html security/reports/zap/ 2>/dev/null || true
+          cp report_json.json security/reports/zap/ 2>/dev/null || true
+          cp report_md.md security/reports/zap/ 2>/dev/null || true
+
+      - name: Upload DAST report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dast-zap-report
+          path: security/reports/zap/
+          if-no-files-found: warn

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+  <!--
+    Подавления для ложных срабатываний.
+    Добавляйте CVE с обоснованием, если Dependency-Check ошибочно сопоставил пакет.
+  -->
+</suppressions>
