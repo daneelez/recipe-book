@@ -34,7 +34,6 @@ jobs:
             p/nodejs
             p/typescript
             security/semgrep/custom-rules.yml
-          generateSarif: "1"  
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
 
