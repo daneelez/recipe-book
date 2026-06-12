@@ -74,17 +74,39 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install dependencies (client)
+        working-directory: client
+        run: npm ci
+
+      - name: Install dependencies (server)
+        working-directory: server
+        run: npm ci
+
       - name: Create reports folder
         run: |
           mkdir -p security/reports
+          mkdir -p security/reports/dependency-check-server
+          mkdir -p security/reports/dependency-check-client
 
-      - name: OWASP Dependency-Check
+      - name: OWASP Dependency-Check (server)
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: recipe-book
-          path: .
+          path: server
           format: ALL
-          out: security/reports/dependency-check
+          out: security/reports/dependency-check-server
+          args: >
+            --enableExperimental
+            --nvdApiDelay 6000
+            --suppression security/dependency-check-suppressions.xml
+
+      - name: OWASP Dependency-Check (client)
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: recipe-book
+          path: client
+          format: ALL
+          out: security/reports/dependency-check-client
           args: >
             --enableExperimental
             --nvdApiDelay 6000
@@ -151,7 +173,7 @@ jobs:
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.14.0
         with:
-          target: http://localhost:3000/api/lab
+          target: http://localhost:3000/api/lab/debug-info
           allow_issue_writing: false
           rules_file_name: security/zap/rules.tsv
           cmd_options: >-
