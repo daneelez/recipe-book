@@ -67,11 +67,6 @@ jobs:
           path: security/reports/semgrep-report.json
           if-no-files-found: warn
 
-      - name: Upload Semgrep SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: security/reports/semgrep-report.sarif
-
   # ─── SCA: OWASP Dependency-Check + npm audit ───────────────────
   sca-dependencies:
     name: SCA (Dependency Check)
